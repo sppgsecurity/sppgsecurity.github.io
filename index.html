@@ -33,7 +33,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--acc)}
 
 #app{max-width:980px;margin:0 auto;padding:max(.8rem,env(safe-area-inset-top)) .8rem 2rem}
 .top{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}.top b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-bottom:1rem}@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:.6rem;margin-bottom:1rem}
 .st{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:.9rem}.st span{color:var(--mut);font-size:.78rem}.st strong{display:block;font-size:1.7rem;color:var(--acc)}
 .tabs{display:flex;gap:.4rem;overflow-x:auto;margin-bottom:.8rem;scrollbar-width:none}.tabs button{white-space:nowrap;border:1px solid var(--line);border-radius:99px;background:var(--panel);color:var(--txt);padding:.5rem .95rem;font:inherit;cursor:pointer}.tabs button.on{background:var(--acc);color:#1a1300;border-color:var(--acc)}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;margin-bottom:1rem}.box h3{margin:0 0 .5rem;font-size:1rem}
@@ -162,6 +162,9 @@ const ph = u => { const m = String(u || '').match(/id=([^&]+)/); return m ? { h:
 const TB = {
   absensi: { t: '📷 Absensi', h: ['Nama', 'Tanggal', 'Shift', 'Masuk', 'Foto', 'Keluar', 'Foto', 'Status'], r: a => [a.nama, a.tanggal, a.shift, a.jam_masuk, ph(a.foto_masuk), a.jam_keluar, ph(a.foto_keluar), a.status] },
   patroli: { t: '🚶 Patroli', h: ['Nama', 'Tanggal', 'Jam', 'Checkpoint', 'Foto', 'Catatan'], r: p => [p.nama, p.tanggal, p.jam, p.checkpoint, ph(p.foto), p.catatan] },
+  laporan: { t: '📝 Laporan', h: ['Nama', 'Tanggal', 'Jenis', 'Deskripsi', 'Foto', 'Status'], r: l => [l.nama, l.tanggal, l.jenis, l.deskripsi, ph(l.foto), { h: `<select class="sm" onchange="setLap('${esc(l.id)}',this.value)">${['baru', 'diproses', 'selesai'].map(s => `<option ${s === l.status ? 'selected' : ''}>${s}</option>`).join('')}</select>` }] },
+  kondisi: { t: '🏢 Foto Kondisi', h: ['Nama', 'Tanggal', 'Jam', 'Lokasi', 'Foto', 'Catatan'], r: k => [k.nama, k.tanggal, k.jam, k.lokasi, ph(k.foto), k.catatan] },
+  jadwal: { t: '🗓️ Jadwal', h: ['Nama', 'Tanggal', 'Shift', 'Lokasi', 'Keterangan'], r: j => [j.nama, j.tanggal, j.shift, j.lokasi, j.keterangan] },
   users: { t: '👤 Personil', h: ['Nama', 'Username', 'Peran', 'Lokasi', 'No HP', 'Status'], r: u => [u.nama, u.username, u.role, u.lokasi, u.hp, { h: u.role === 'admin' ? '<span class="pill">aktif</span>' : `<button class="sm" onclick="setUser('${esc(u.id)}','${u.status === 'aktif' ? 'nonaktif' : 'aktif'}')">${u.status === 'aktif' ? '<span class="pill">aktif</span>' : '<span class="pill x">nonaktif</span>'}</button>` }] },
   checkpoints: { t: '📍 Checkpoint', h: ['Nama', 'Lokasi'], r: c => [c.nama, c.lokasi] }
 };
@@ -169,61 +172,109 @@ async function loadAdmin() {
   $('main').innerHTML = '<p style="color:var(--mut)">Memuat data dari spreadsheet...</p>';
   try { D = await rpc('adminData', TOK); } catch (e) { return fail(e); }
   const s = D.stats;
-  $('main').innerHTML = `<div class="stats">${[['Personil', s.personil], ['Absen Hari Ini', s.absenHariIni], ['Sedang Bertugas', s.bertugas], ['Patroli Hari Ini', s.patroliHariIni]].map(x => `<div class="st"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('')}</div>
+  $('main').innerHTML = `<div class="stats">${[['Personil', s.personil], ['Absen Hari Ini', s.absenHariIni], ['Sedang Bertugas', s.bertugas], ['Patroli Hari Ini', s.patroliHariIni], ['Laporan Baru', s.laporanBaru]].map(x => `<div class="st"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('')}</div>
   <div class="tabs">${Object.keys(TB).map(k => `<button id="t_${k}" onclick="tab='${k}';drawTab()">${TB[k].t}</button>`).join('')}<button onclick="adminChat()">💬 Obrolan</button><button onclick="loadAdmin()">↻ Muat ulang</button></div>
   <div class="box"><div id="cpf" class="row hide"><input id="cpn" placeholder="Nama checkpoint"><input id="cpl" placeholder="Lokasi"><button class="sm" onclick="addCp()">Tambah</button></div>
+  <div id="jdf" class="row hide" style="flex-wrap:wrap"><select id="ju" style="min-width:150px">${D.users.filter(u => u.role === 'security').map(u => `<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')}</select><input id="jt" type="date" style="min-width:150px"><select id="js" style="min-width:100px"><option>Pagi</option><option>Siang</option><option>Malam</option></select><input id="jl" placeholder="Lokasi" style="min-width:140px"><input id="jk" placeholder="Keterangan" style="min-width:140px"><button class="sm" onclick="addJd()">Tambah</button></div>
   <input id="q" placeholder="Cari..." oninput="drawTab()" style="margin-bottom:.7rem"><div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>`;
   drawTab();
 }
 function drawTab() {
   const d = TB[tab], q = ($('q').value || '').toLowerCase(), list = D[tab].filter(x => !q || JSON.stringify(x).toLowerCase().includes(q));
   document.querySelectorAll('.tabs button[id]').forEach(b => b.classList.toggle('on', b.id === 't_' + tab));
-  $('cpf').classList.toggle('hide', tab !== 'checkpoints');
+  $('cpf').classList.toggle('hide', tab !== 'checkpoints'); $('jdf').classList.toggle('hide', tab !== 'jadwal');
   $('th').innerHTML = '<tr>' + d.h.map(x => `<th>${x}</th>`).join('') + '</tr>';
   $('tb').innerHTML = list.length ? list.map(x => '<tr>' + d.r(x).map(c => `<td>${c && c.h ? c.h : esc(c) || '-'}</td>`).join('') + '</tr>').join('') : `<tr><td colspan="${d.h.length}" style="color:var(--mut)">Belum ada data.</td></tr>`;
 }
 async function setUser(id, st) { try { const r = await rpc('setStatusUser', TOK, id, st); if (!r.ok) note(r.message, 'err'); await loadAdmin(); tab = 'users'; drawTab(); } catch (e) { fail(e); } }
+async function setLap(id, s) { try { const r = await rpc('updateStatusLaporan', TOK, id, s); if (!r.ok) note(r.message, 'err'); } catch (e) { fail(e); } }
+async function addJd() {
+  try {
+    const r = await rpc('addJadwal', TOK, { user_id: $('ju').value, tanggal: $('jt').value, shift: $('js').value, lokasi: $('jl').value, keterangan: $('jk').value });
+    if (!r.ok) return note(r.message, 'err'); await loadAdmin(); tab = 'jadwal'; drawTab(); note('Jadwal ditambahkan ✔', 'ok');
+  } catch (e) { fail(e); }
+}
 async function addCp() { try { const r = await rpc('addCheckpoint', TOK, $('cpn').value, $('cpl').value); if (!r.ok) return note(r.message, 'err'); await loadAdmin(); tab = 'checkpoints'; drawTab(); } catch (e) { fail(e); } }
 
 // ---------- SECURITY ----------
 const shot = f => new Promise(ok => { if (!f) return ok(''); const r = new FileReader(); r.onload = () => { const i = new Image(); i.onload = () => { const s = Math.min(1, 720 / Math.max(i.width, i.height)), c = document.createElement('canvas'); c.width = i.width * s; c.height = i.height * s; c.getContext('2d').drawImage(i, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', .65)); }; i.src = r.result; }; r.readAsDataURL(f); });
 const gps = () => new Promise(ok => navigator.geolocation ? navigator.geolocation.getCurrentPosition(p => ok({ lat: p.coords.latitude, lng: p.coords.longitude }), () => ok({}), { timeout: 8000, enableHighAccuracy: true }) : ok({}));
 
-async function loadSec() {
+async function loadAbsen() {
   let s; try { s = await rpc('statusSaya', TOK); } catch (e) { return fail(e); }
-  const a = s.absen, info = !a ? 'Belum absen masuk hari ini' : a.jam_keluar ? `Selesai · shift ${a.shift} · ${a.jam_masuk}–${a.jam_keluar}` : `Bertugas · shift ${a.shift} · masuk ${a.jam_masuk}`;
-  const aksi = a && a.jam_keluar ? '<p style="color:var(--ok)">Absensi hari ini lengkap ✔</p>' : `${a ? '' : '<select id="shift"><option>Pagi</option><option>Siang</option><option>Malam</option></select><br><br>'}
-    <input type="file" id="fa" accept="image/*" capture="user"><button class="go" onclick="kirimAbsen(this,'${a ? 'absenKeluar' : 'absenMasuk'}')">${a ? 'Absen Keluar' : 'Absen Masuk'} (selfie)</button>`;
-  $('sbody').innerHTML = `<div class="box"><h3>Absensi</h3><p style="margin:.2rem 0 .8rem">${esc(info)}</p>${aksi}</div>
-  <div class="box"><h3>Patroli</h3><select id="cp">${s.checkpoints.length ? s.checkpoints.map(c => `<option>${esc(c.nama)}</option>`).join('') : '<option value="">(admin belum membuat checkpoint)</option>'}</select>
+  const a = s.absen, masuk = !!a, selesai = !!(a && a.jam_keluar);
+  const info = !a ? 'Belum absen masuk hari ini' : selesai ? `Selesai · shift ${a.shift} · ${a.jam_masuk}–${a.jam_keluar}` : `Bertugas · shift ${a.shift} · masuk ${a.jam_masuk}`;
+  $('sbody').innerHTML = `<div class="box"><h3>📷 Absensi</h3><p style="margin:.2rem 0 .8rem">${esc(info)}</p>
+  ${masuk ? '' : '<label style="margin-top:0">Shift</label><select id="shift"><option>Pagi</option><option>Siang</option><option>Malam</option></select>'}
+  <label>Foto selfie</label><input type="file" id="fa" accept="image/*" capture="user">
+  <div class="row" style="margin-top:.9rem"><button class="go" style="margin:0" ${masuk ? 'disabled' : ''} onclick="kirimAbsen(this,'absenMasuk')">Absen Masuk</button>
+  <button class="go" style="margin:0" ${!masuk || selesai ? 'disabled' : ''} onclick="kirimAbsen(this,'absenKeluar')">Absen Keluar</button></div>
+  ${selesai ? '<p style="color:var(--ok);margin:.8rem 0 0">Absensi hari ini lengkap ✔</p>' : ''}</div>`;
+}
+async function loadPatroli() {
+  let s; try { s = await rpc('statusSaya', TOK); } catch (e) { return fail(e); }
+  $('sbody').innerHTML = `<div class="box"><h3>🚶 Patroli</h3><select id="cp">${s.checkpoints.length ? s.checkpoints.map(c => `<option>${esc(c.nama)}</option>`).join('') : '<option value="">(admin belum membuat checkpoint)</option>'}</select>
   <textarea id="cat" rows="2" placeholder="Catatan (opsional)" style="margin:.6rem 0"></textarea><input type="file" id="fp" accept="image/*" capture="environment">
   <button class="go" onclick="kirimPatroli(this)">Kirim Patroli</button></div>
   <div class="box"><h3>Patroli hari ini (${s.patroli.length})</h3>${s.patroli.map(p => `<div class="li">${esc(p.jam)} — ${esc(p.checkpoint)}<br><small>${esc(p.catatan)}</small></div>`).join('') || '<small style="color:var(--mut)">Belum ada.</small>'}</div>`;
 }
-async function kirim(btn, fn, data, file) {
-  note(''); if (!file) return note('Ambil foto terlebih dahulu.', 'err');
+async function loadJadwal() {
+  let j; try { j = await rpc('getJadwalSaya', TOK); } catch (e) { return fail(e); }
+  $('sbody').innerHTML = `<div class="box"><h3>🗓️ Jadwal Saya</h3>${j.map(x => `<div class="li"><b>${esc(x.tanggal)}</b> · shift ${esc(x.shift)}<br><small>${esc(x.lokasi)}${x.keterangan ? ' — ' + esc(x.keterangan) : ''}</small></div>`).join('') || '<small style="color:var(--mut)">Belum ada jadwal dari admin.</small>'}</div>`;
+}
+function loadLaporan() {
+  $('sbody').innerHTML = `<div class="box"><h3>📝 Laporan Kejadian</h3>
+  <select id="lj">${['Pencurian', 'Kebakaran', 'Kecelakaan', 'Orang mencurigakan', 'Kerusakan fasilitas', 'Lainnya'].map(x => `<option>${x}</option>`).join('')}</select>
+  <textarea id="ld" rows="4" maxlength="1000" placeholder="Ceritakan kejadian: apa, di mana, kapan, siapa terlibat" style="margin:.6rem 0"></textarea>
+  <label style="margin-top:0">Foto (opsional)</label><input type="file" id="fl" accept="image/*" capture="environment">
+  <button class="go" onclick="kirimLaporan(this)">Kirim Laporan</button></div>`;
+  return Promise.resolve();
+}
+function loadKondisi() {
+  $('sbody').innerHTML = `<div class="box"><h3>🏢 Foto Kondisi Lokasi</h3><input id="kl" placeholder="Nama lokasi, cth: Pos Gerbang Utama" maxlength="80">
+  <textarea id="kc" rows="2" placeholder="Catatan (opsional)" style="margin:.6rem 0"></textarea><input type="file" id="fk" accept="image/*" capture="environment">
+  <button class="go" onclick="kirimKondisi(this)">Kirim Foto Kondisi</button></div>`;
+  return Promise.resolve();
+}
+function loadRekap() {
+  $('sbody').innerHTML = `<div class="box"><h3>📊 Rekap Absensi Bulanan</h3><div class="row"><input type="month" id="rm" value="${new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 7)}"><button class="sm" onclick="tampilRekap()">Tampilkan</button></div><div id="rk"></div></div>`;
+  return tampilRekap();
+}
+async function tampilRekap() {
+  try {
+    const r = await rpc('getRekap', TOK, $('rm').value);
+    $('rk').innerHTML = `<p style="margin:.2rem 0 .6rem">Hadir <b style="color:var(--acc)">${r.hadir}</b> hari · absensi lengkap <b style="color:var(--ok)">${r.lengkap}</b> hari</p>` +
+      (r.rows.map(x => `<div class="li"><b>${esc(x.tanggal)}</b> · ${esc(x.shift)}<br><small>Masuk ${esc(x.jam_masuk) || '-'} · Keluar ${esc(x.jam_keluar) || '-'} · ${esc(x.status)}</small></div>`).join('') || '<small style="color:var(--mut)">Tidak ada data pada bulan ini.</small>');
+  } catch (e) { fail(e); }
+}
+async function kirim(btn, fn, data, file, opt) {
+  note(''); if (!file && !opt) return note('Ambil foto terlebih dahulu.', 'err');
   const t = btn.textContent; btn.disabled = true; btn.textContent = 'Mengirim...';
   try {
     const [foto, pos] = await Promise.all([shot(file), gps()]);
     const r = await rpc(fn, TOK, Object.assign(data, pos, { foto }));
     if (!r.ok) throw new Error(r.message);
-    await loadSec(); note('Berhasil tersimpan ✔', 'ok');
+    await goSec(secT); note('Berhasil tersimpan ✔', 'ok');
   } catch (e) { btn.disabled = false; btn.textContent = t; fail(e); }
 }
 const kirimAbsen = (b, fn) => kirim(b, fn, { shift: $('shift') ? $('shift').value : '' }, $('fa').files[0]);
+const kirimLaporan = b => $('ld').value.trim() ? kirim(b, 'submitLaporan', { jenis: $('lj').value, deskripsi: $('ld').value }, $('fl').files[0], true) : note('Isi deskripsi kejadian.', 'err');
+const kirimKondisi = b => $('kl').value.trim() ? kirim(b, 'submitKondisi', { lokasi: $('kl').value, catatan: $('kc').value }, $('fk').files[0]) : note('Isi nama lokasi.', 'err');
 const kirimPatroli = b => $('cp').value ? kirim(b, 'submitPatroli', { checkpoint: $('cp').value, catatan: $('cat').value }, $('fp').files[0]) : note('Pilih checkpoint.', 'err');
 
 // ---------- SECURITY: NAVIGASI, OBROLAN, PROFIL ----------
 let chatTimer = null, chatLast = -1;
+let secT = 'absen';
+const SEC_TABS = [['absen', '📷 Absensi'], ['jadwal', '🗓️ Jadwal'], ['patroli', '🚶 Patroli'], ['laporan', '📝 Laporan'], ['kondisi', '🏢 Kondisi'], ['rekap', '📊 Rekap'], ['chat', '💬 Obrolan'], ['profil', '👤 Profil']];
 function secShell() {
-  $('main').innerHTML = '<div class="tabs" id="stabs">' + [['home', '🏠 Beranda'], ['chat', '💬 Obrolan'], ['profil', '👤 Profil']].map(x => `<button data-t="${x[0]}" onclick="goSec('${x[0]}')">${x[1]}</button>`).join('') + '</div><div id="sbody"></div>';
-  goSec('home');
+  $('main').innerHTML = '<div class="tabs" id="stabs">' + SEC_TABS.map(x => `<button data-t="${x[0]}" onclick="goSec('${x[0]}')">${x[1]}</button>`).join('') + '</div><div id="sbody"></div>';
+  goSec('absen');
 }
 function goSec(t) {
-  clearInterval(chatTimer); note('');
+  secT = t; clearInterval(chatTimer); note('');
   document.querySelectorAll('#stabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
   $('sbody').innerHTML = '<p style="color:var(--mut)">Memuat...</p>';
-  ({ home: loadSec, chat: openChat, profil: openProfil })[t]();
+  return ({ absen: loadAbsen, jadwal: loadJadwal, patroli: loadPatroli, laporan: loadLaporan, kondisi: loadKondisi, rekap: loadRekap, chat: openChat, profil: openProfil })[t]();
 }
 function openChat() {
   chatLast = -1;

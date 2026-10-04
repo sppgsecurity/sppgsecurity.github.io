@@ -248,10 +248,10 @@ function doLogout() {
 // ---------- ADMIN ----------
 const ph = u => { const m = String(u || '').match(/id=([^&]+)/); return m ? { h: `<a target="_blank" href="https://drive.google.com/file/d/${m[1]}/view"><img class="th" loading="lazy" src="https://drive.google.com/thumbnail?id=${m[1]}&sz=w160"></a>` } : '-'; };
 const TB = {
-  absensi: { t: '📷 Absensi', h: ['Nama', 'Tanggal', 'Shift', 'Masuk', 'Foto', 'Keluar', 'Foto', 'Status'], r: a => [a.nama, a.tanggal, a.shift, a.jam_masuk, ph(a.foto_masuk), a.jam_keluar, ph(a.foto_keluar), a.status] },
-  patroli: { t: '🚶 Patroli', h: ['Nama', 'Tanggal', 'Jam', 'Checkpoint', 'Foto', 'Catatan'], r: p => [p.nama, p.tanggal, p.jam, p.checkpoint, ph(p.foto), p.catatan] },
-  laporan: { t: '📝 Laporan', h: ['Nama', 'Tanggal', 'Jenis', 'Deskripsi', 'Foto', 'Status'], r: l => [l.nama, l.tanggal, l.jenis, l.deskripsi, ph(l.foto), { h: `<select class="sm" onchange="setLap('${esc(l.id)}',this.value)">${['baru', 'diproses', 'selesai'].map(s => `<option ${s === l.status ? 'selected' : ''}>${s}</option>`).join('')}</select>` }] },
-  kondisi: { t: '🏢 Foto Kondisi', h: ['Nama', 'Tanggal', 'Jam', 'Lokasi', 'Foto', 'Catatan'], r: k => [k.nama, k.tanggal, k.jam, k.lokasi, ph(k.foto), k.catatan] },
+  absensi: { t: '📷 Absensi', h: ['Nama', 'Lokasi SPPG', 'Tanggal', 'Shift', 'Masuk', 'Foto', 'Keluar', 'Foto', 'Status'], r: a => [a.nama, a.sppg, a.tanggal, a.shift, a.jam_masuk, ph(a.foto_masuk), a.jam_keluar, ph(a.foto_keluar), a.status] },
+  patroli: { t: '🚶 Patroli', h: ['Nama', 'Lokasi SPPG', 'Tanggal', 'Jam', 'Checkpoint', 'Foto', 'Catatan'], r: p => [p.nama, p.sppg, p.tanggal, p.jam, p.checkpoint, ph(p.foto), p.catatan] },
+  laporan: { t: '📝 Laporan', h: ['Nama', 'Lokasi SPPG', 'Tanggal', 'Jenis', 'Deskripsi', 'Foto', 'Status'], r: l => [l.nama, l.sppg, l.tanggal, l.jenis, l.deskripsi, ph(l.foto), { h: `<select class="sm" onchange="setLap('${esc(l.id)}',this.value)">${['baru', 'diproses', 'selesai'].map(s => `<option ${s === l.status ? 'selected' : ''}>${s}</option>`).join('')}</select>` }] },
+  kondisi: { t: '🏢 Foto Kondisi', h: ['Nama', 'Lokasi SPPG', 'Tanggal', 'Jam', 'Lokasi', 'Foto', 'Catatan'], r: k => [k.nama, k.sppg, k.tanggal, k.jam, k.lokasi, ph(k.foto), k.catatan] },
   jadwal: { t: '🗓️ Jadwal', h: ['Nama', 'Tanggal', 'Shift', 'Lokasi', 'Keterangan'], r: j => [j.nama, j.tanggal, j.shift, j.lokasi, j.keterangan] },
   users: { t: '👤 Personil', h: ['Foto', 'Nama', 'Username', 'Peran', 'Lokasi', 'No HP', 'Status'], r: u => [ph(u.foto), u.nama, u.username, u.role, u.lokasi, u.hp, { h: u.role === 'admin' ? '<span class="pill">aktif</span>' : `<button class="sm" onclick="setUser('${esc(u.id)}','${u.status === 'aktif' ? 'nonaktif' : 'aktif'}')">${u.status === 'aktif' ? '<span class="pill">aktif</span>' : '<span class="pill x">nonaktif</span>'}</button>` }] },
   checkpoints: { t: '📍 Checkpoint', h: ['Nama', 'Lokasi'], r: c => [c.nama, c.lokasi] },
@@ -267,7 +267,8 @@ async function loadAdmin() {
   <div class="tabs">${Object.keys(TB).map(k => `<button id="t_${k}" onclick="tab='${k}';drawTab()">${TB[k].t}</button>`).join('')}<button class="tg push" onclick="adminChat()">💬 Obrolan</button><button class="tg" onclick="loadAdmin()">↻ Muat ulang</button></div>
   <div class="box" id="tbx"><div id="cpf" class="row hide"><input id="cpn" placeholder="Nama checkpoint"><input id="cpl" placeholder="Lokasi"><button class="sm" onclick="addCp()">Tambah</button></div>
   <div id="jdf" class="row hide" style="flex-wrap:wrap"><select id="ju" style="min-width:150px">${D.users.filter(u => u.role === 'security').map(u => `<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')}</select><input id="jt" type="date" style="min-width:150px"><select id="js" style="min-width:100px"><option>Pagi</option><option>Malam</option></select><input id="jl" placeholder="Lokasi" style="min-width:140px"><input id="jk" placeholder="Keterangan" style="min-width:140px"><button class="sm" onclick="addJd()">Tambah</button></div>
-  <input id="q" placeholder="Cari..." oninput="drawTab()" style="margin-bottom:.7rem"><div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
+  <div class="row" style="flex-wrap:wrap"><select id="fl" onchange="drawTab()" style="flex:1 1 260px"><option value="">Semua Lokasi SPPG</option>${[...new Set(LOKASI.concat(D.users.map(u => u.lokasi).filter(Boolean)))].map(x => `<option>${esc(x)}</option>`).join('')}</select>
+  <input id="q" placeholder="Cari nama, tanggal, dll..." oninput="drawTab()" style="flex:2 1 200px"></div><div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
   <div class="box hide" id="rkp"><h3>📊 Rekap Kehadiran &amp; Alpha</h3>
     <div class="row" style="flex-wrap:wrap;align-items:flex-end">
       <div style="min-width:140px"><label style="margin-top:0">Dari</label><input type="date" id="rd"></div>
@@ -298,7 +299,9 @@ function drawTab() {
   $('tbx').classList.toggle('hide', khusus); $('exp').classList.toggle('hide', tab !== 'export'); $('rkp').classList.toggle('hide', tab !== 'rekap');
   if (tab === 'rekap' && !RK) loadRekapAdmin();
   if (khusus) return;
-  const d = TB[tab], q = ($('q').value || '').toLowerCase(), list = D[tab].filter(x => !q || JSON.stringify(x).toLowerCase().includes(q));
+  const d = TB[tab], q = ($('q').value || '').toLowerCase(), fk = ['absensi', 'patroli', 'laporan', 'kondisi', 'users'].indexOf(tab) >= 0, fl = fk ? $('fl').value : '';
+  $('fl').classList.toggle('hide', !fk);
+  const list = D[tab].filter(x => (!q || JSON.stringify(x).toLowerCase().includes(q)) && (!fl || (x.sppg !== undefined ? x.sppg : x.lokasi) === fl));
   document.querySelectorAll('.tabs button[id]').forEach(b => b.classList.toggle('on', b.id === 't_' + tab));
   $('cpf').classList.toggle('hide', tab !== 'checkpoints'); $('jdf').classList.toggle('hide', tab !== 'jadwal');
   $('th').innerHTML = '<tr>' + d.h.map(x => `<th>${x}</th>`).join('') + '</tr>';

@@ -500,7 +500,7 @@ function openChat() {
   chatLast = -1; let pend = null;
   $('sbody').innerHTML = `<div class="box"><h3>💬 Obrolan Seluruh Security</h3><div class="chat" id="msgs"></div>
   <div id="cprev" class="cprev hide"><img id="cpi" alt=""><span id="cpn"></span><button type="button" class="sm" id="cpx" aria-label="Batalkan gambar">✕</button></div>
-  <form class="cin" id="cf" autocomplete="off"><label class="sm clip" title="Kirim gambar">📎 Gambar<input type="file" id="cfile" accept="image/*" hidden></label>
+  <form class="cin" id="cf" autocomplete="off"><label class="sm clip" title="Kirim gambar">📎<input type="file" id="cfile" accept="image/*" hidden></label>
   <input id="ct" maxlength="500" placeholder="Tulis pesan..."><button class="go" type="submit" id="cs">Kirim</button></form><div id="cmsg" class="msg" style="margin:.6rem 0 0"></div></div>`;
   const cnote = (t, type) => { const m = $('cmsg'); if (!m) return; m.textContent = t || ''; m.className = 'msg' + (t ? ' ' + type : ''); };
   const clear = () => { pend = null; $('cfile').value = ''; $('cprev').classList.add('hide'); };

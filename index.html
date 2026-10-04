@@ -266,7 +266,7 @@ async function loadAdmin() {
   $('main').innerHTML = `<div class="stats">${[['Personil', s.personil], ['Absen Hari Ini', s.absenHariIni], ['Sedang Bertugas', s.bertugas], ['Patroli Hari Ini', s.patroliHariIni], ['Laporan Baru', s.laporanBaru]].map(x => `<div class="st"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('')}</div>
   <div class="tabs">${Object.keys(TB).map(k => `<button id="t_${k}" onclick="tab='${k}';drawTab()">${TB[k].t}</button>`).join('')}<button class="tg push" onclick="adminChat()">💬 Obrolan</button><button class="tg" onclick="loadAdmin()">↻ Muat ulang</button></div>
   <div class="box" id="tbx"><div id="cpf" class="row hide"><input id="cpn" placeholder="Nama checkpoint"><input id="cpl" placeholder="Lokasi"><button class="sm" onclick="addCp()">Tambah</button></div>
-  <div id="jdf" class="row hide" style="flex-wrap:wrap"><select id="ju" style="min-width:150px">${D.users.filter(u => u.role === 'security').map(u => `<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')}</select><input id="jt" type="date" style="min-width:150px"><select id="js" style="min-width:100px"><option>Pagi</option><option>Siang</option><option>Malam</option></select><input id="jl" placeholder="Lokasi" style="min-width:140px"><input id="jk" placeholder="Keterangan" style="min-width:140px"><button class="sm" onclick="addJd()">Tambah</button></div>
+  <div id="jdf" class="row hide" style="flex-wrap:wrap"><select id="ju" style="min-width:150px">${D.users.filter(u => u.role === 'security').map(u => `<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')}</select><input id="jt" type="date" style="min-width:150px"><select id="js" style="min-width:100px"><option>Pagi</option><option></option><option>Malam</option></select><input id="jl" placeholder="Lokasi" style="min-width:140px"><input id="jk" placeholder="Keterangan" style="min-width:140px"><button class="sm" onclick="addJd()">Tambah</button></div>
   <input id="q" placeholder="Cari..." oninput="drawTab()" style="margin-bottom:.7rem"><div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
   <div class="box hide" id="rkp"><h3>📊 Rekap Kehadiran &amp; Alpha</h3>
     <div class="row" style="flex-wrap:wrap;align-items:flex-end">
@@ -380,7 +380,7 @@ async function loadAbsen() {
   const a = s.absen, bertugas = !!(a && !a.jam_keluar);
   const info = !a ? 'Belum ada catatan absensi.' : bertugas ? `🟢 Sedang bertugas · shift ${a.shift} · masuk ${a.tanggal} ${a.jam_masuk}` : `Terakhir: ${a.tanggal} · shift ${a.shift} · ${a.jam_masuk}–${a.jam_keluar}`;
   $('sbody').innerHTML = `<div class="box"><h3>📷 Absensi</h3><p style="margin:.2rem 0 .8rem">${esc(info)}</p>
-  <label style="margin-top:0">Shift (untuk Absen Masuk)</label><select id="shift"><option>Pagi</option><option>Siang</option><option>Malam</option></select>
+  <label style="margin-top:0">Shift (untuk Absen Masuk)</label><select id="shift"><option>Pagi</option><option></option><option>Malam</option></select>
   <label>Foto selfie</label><input type="file" id="fa" accept="image/*" capture="user">
   <div class="row" style="margin-top:.9rem"><button class="go" style="margin:0" onclick="kirimAbsen(this,'absenMasuk')">Absen Masuk</button>
   <button class="go" style="margin:0" onclick="kirimAbsen(this,'absenKeluar')">Absen Keluar</button></div></div>`;

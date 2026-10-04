@@ -75,6 +75,7 @@ img.th{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
   .tabs .push{margin-left:auto}.tabs .tg{color:var(--mut);font-weight:500}
 }
 .rq{display:none;color:var(--err);font-weight:700}#f.su .rq{display:inline}.bad{border-color:var(--err)!important}
+.pbar{height:14px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:.9rem 0 .4rem}.pbar i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .25s}
 </style>
 </head>
 <body>
@@ -118,6 +119,17 @@ img.th{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
     <button class="dbtn" onclick="menu(false);openPw()">🔑 Ubah Sandi</button>
     <button class="dbtn" onclick="menu(false);doLogout()">🚪 Keluar</button>
   </nav>
+</div>
+
+<div id="upBox" class="hide" style="position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:1rem">
+  <div class="card" style="max-width:340px;text-align:center">
+    <div id="upIc" style="font-size:2.2rem">⏳</div>
+    <h1 id="upTit" style="font-size:1.05rem;margin:.3rem 0 .2rem">Mengirim...</h1>
+    <p id="upTxt" style="color:var(--mut);font-size:.88rem;margin:0">Tunggu proses…</p>
+    <div class="pbar"><i id="upBar"></i></div>
+    <b id="upPct" style="font-size:1.3rem">0%</b>
+    <button class="go hide" id="upOk" onclick="UP.close()">Tutup</button>
+  </div>
 </div>
 
 <div id="pwBox" class="hide" style="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem">
@@ -219,6 +231,36 @@ const rpc = (fn, ...a) => fetch(API, { method: 'POST', body: JSON.stringify({ fn
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function note(t, type) { const n = $('note'); n.textContent = t || ''; n.className = 'msg' + (t ? ' ' + type : ''); if (t) scrollTo(0, 0); }
 function fail(e) { if (/Sesi berakhir/.test(e.message)) return doLogout(); note(e.message, 'err'); }
+
+// Kirim dengan XHR agar kemajuan unggah (%) bisa dibaca
+const rpcUp = (fn, args, onUp) => new Promise((ok, no) => {
+  const x = new XMLHttpRequest(); x.open('POST', API); x.timeout = 180000;
+  x.upload.onprogress = e => { if (e.lengthComputable) onUp(e.loaded / e.total); };
+  x.upload.onload = () => onUp(1);
+  x.onerror = () => no(new Error('Koneksi gagal. Periksa internet Anda lalu coba lagi.'));
+  x.ontimeout = () => no(new Error('Waktu habis. Sinyal terlalu lemah, coba lagi.'));
+  x.onload = () => { try { const j = JSON.parse(x.responseText); j.ok ? ok(j.data) : no(new Error(j.error)); } catch (_) { no(new Error('Respon server tidak valid.')); } };
+  x.send(JSON.stringify({ fn: fn, args: args }));
+});
+const UP = {
+  p: 0,
+  open(title) { $('upIc').textContent = '⏳'; $('upTit').textContent = title; $('upOk').classList.add('hide'); $('upBar').style.background = ''; this.set(0, 'Tunggu proses, jangan tutup halaman…'); $('upBox').classList.remove('hide'); document.body.style.overflow = 'hidden'; },
+  set(p, txt) { this.p = p; $('upBar').style.width = p + '%'; $('upPct').textContent = Math.round(p) + '%'; if (txt) $('upTxt').textContent = txt; },
+  bump() { if (this.p < 97) this.set(this.p + 1); },
+  async call(fn, ...args) {
+    let creep = null;
+    try {
+      return await rpcUp(fn, [TOK, ...args], f => {
+        this.set(15 + f * 70, f < 1 ? 'Mengunggah… tunggu proses, jangan tutup halaman' : 'Menyimpan ke server…');
+        if (f >= 1 && !creep) creep = setInterval(() => this.bump(), 500);
+      });
+    } finally { clearInterval(creep); }
+  },
+  async done(msg) { this.set(100, 'Selesai'); $('upIc').textContent = '✅'; $('upTit').textContent = msg; $('upTxt').textContent = 'Data berhasil tersimpan.'; await new Promise(r => setTimeout(r, 1300)); this.close(); },
+  fail(msg) { $('upIc').textContent = '❌'; $('upTit').textContent = 'Gagal mengirim'; $('upTxt').textContent = msg; $('upBar').style.background = 'var(--err)'; $('upOk').classList.remove('hide'); },
+  err(e) { if (/Sesi berakhir/.test(e.message)) { this.close(); fail(e); } else this.fail(e.message); },
+  close() { $('upBox').classList.add('hide'); document.body.style.overflow = ''; }
+};
 
 function menu(on) { $('dr').classList.toggle('hide', !on); document.body.style.overflow = on ? 'hidden' : ''; }
 function fillMenu() {
@@ -426,13 +468,17 @@ async function tampilRekap() {
 }
 async function kirim(btn, fn, data, file, opt) {
   note(''); if (!file && !opt) return note('Ambil foto terlebih dahulu.', 'err');
-  const t = btn.textContent; btn.disabled = true; btn.textContent = 'Mengirim...';
+  UP.open(file ? 'Mengirim foto…' : 'Mengirim data…');
   try {
-    const [foto, pos] = await Promise.all([shot(file), gps()]);
-    const r = await rpc(fn, TOK, Object.assign(data, pos, { foto }));
+    UP.set(4, file ? 'Memproses foto…' : 'Menyiapkan data…');
+    const foto = file ? await shot(file) : '';
+    UP.set(10, 'Mengambil lokasi GPS…');
+    const pos = await gps();
+    const r = await UP.call(fn, Object.assign(data, pos, { foto }));
     if (!r.ok) throw new Error(r.message);
+    await UP.done('Berhasil terkirim ✔');
     await goSec(secT); note('Berhasil tersimpan ✔', 'ok');
-  } catch (e) { btn.disabled = false; btn.textContent = t; fail(e); }
+  } catch (e) { UP.err(e); }
 }
 const kirimAbsen = (b, fn) => kirim(b, fn, { shift: $('shift') ? $('shift').value : '' }, $('fa').files[0]);
 const kirimLaporan = b => $('ld').value.trim() ? kirim(b, 'submitLaporan', { jenis: $('lj').value, deskripsi: $('ld').value }, $('fl').files[0], true) : note('Isi deskripsi kejadian.', 'err');
@@ -471,11 +517,13 @@ function openChat() {
     e.preventDefault(); const t = $('ct').value.trim(); if (!t && !pend) return; cnote('');
     const b = $('cs'); b.disabled = true; b.textContent = pend ? 'Mengunggah...' : 'Kirim';
     try {
-      const foto = pend ? await shot(pend) : '';
-      const r = await rpc('kirimPesan', TOK, t, foto);
-      if (!r.ok) cnote(r.message, 'err'); else { $('ct').value = ''; clear(); }
+      const adaFoto = !!pend; let r;
+      if (adaFoto) { UP.open('Mengirim gambar…'); UP.set(5, 'Memproses gambar…'); const foto = await shot(pend); r = await UP.call('kirimPesan', t, foto); }
+      else r = await rpc('kirimPesan', TOK, t, '');
+      if (!r.ok) { if (adaFoto) UP.fail(r.message); else cnote(r.message, 'err'); }
+      else { $('ct').value = ''; clear(); if (adaFoto) await UP.done('Gambar berhasil terkirim ✔'); }
       pollChat();
-    } catch (err) { if (/Sesi berakhir/.test(err.message)) fail(err); else cnote('Gagal mengirim: ' + err.message, 'err'); }
+    } catch (err) { if (pend) UP.err(err); else if (/Sesi berakhir/.test(err.message)) fail(err); else cnote('Gagal mengirim: ' + err.message, 'err'); }
     b.disabled = false; b.textContent = 'Kirim';
   };
   pollChat(); chatTimer = setInterval(pollChat, 8000);
@@ -510,10 +558,12 @@ async function openProfil() {
   $('pfoto').onchange = async e => {
     const f = e.target.files[0]; if (!f) return; note(''); $('pfl').textContent = 'Mengunggah...';
     try {
-      const d = await avatar(f), r = await rpc('uploadFotoProfil', TOK, d);
+      UP.open('Mengunggah foto profil…'); UP.set(5, 'Memproses foto…');
+      const d = await avatar(f), r = await UP.call('uploadFotoProfil', d);
       if (!r.ok) throw new Error(r.message);
-      $('av').innerHTML = `<img src="${d}" alt="Foto profil"><span></span>`; note('Foto profil tersimpan ✔', 'ok');
-    } catch (err) { fail(err); }
+      $('av').innerHTML = `<img src="${d}" alt="Foto profil"><span></span>`;
+      await UP.done('Foto profil berhasil terkirim ✔');
+    } catch (err) { UP.err(err); }
     $('pfl').textContent = '📷 Ganti Foto'; e.target.value = '';
   };
   $('pf').onsubmit = async e => {

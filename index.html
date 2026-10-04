@@ -74,6 +74,7 @@ img.th{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
   .tabs button:hover{background:#eef2f7}.tabs button.on:hover{background:var(--acc)}
   .tabs .push{margin-left:auto}.tabs .tg{color:var(--mut);font-weight:500}
 }
+.rq{display:none;color:var(--err);font-weight:700}#f.su .rq{display:inline}.bad{border-color:var(--err)!important}
 </style>
 </head>
 <body>
@@ -89,14 +90,14 @@ img.th{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
     </div>
     <div id="msg" class="msg"></div>
 
-    <form id="f" autocomplete="on">
-      <div id="rowNama" class="hide"><label>Nama lengkap</label><input id="nama" autocomplete="name"></div>
-      <label>Username</label><input id="user" autocomplete="username" autocapitalize="none" required>
-      <label>Password</label>
+    <form id="f" autocomplete="on" novalidate>
+      <div id="rowNama" class="hide"><label>Nama lengkap<span class="rq"> *</span></label><input id="nama" autocomplete="name"></div>
+      <label>Username<span class="rq"> *</span></label><input id="user" autocomplete="username" autocapitalize="none" required>
+      <label>Password<span class="rq"> *</span></label>
       <div class="pw"><input id="pass" type="password" autocomplete="current-password" required><button type="button" id="eye" aria-label="Tampilkan password">👁</button></div>
       <div id="rowExtra" class="hide">
-        <label>No. HP (1 nomor = 1 akun)</label><input id="hp" inputmode="tel" autocomplete="tel" placeholder="cth: 0812 3456 7890">
-        <label>Lokasi tugas</label><select id="lokasi"><option value="">— Pilih lokasi tugas —</option></select>
+        <label>No. HP (1 nomor = 1 akun)<span class="rq"> *</span></label><input id="hp" inputmode="tel" autocomplete="tel" placeholder="cth: 0812 3456 7890">
+        <label>Lokasi tugas<span class="rq"> *</span></label><select id="lokasi"><option value="">— Pilih lokasi tugas —</option></select>
       </div>
       <button class="go" id="go" type="submit">Masuk</button>
     </form>
@@ -167,6 +168,7 @@ function setMode(m) {
   document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
   $('rowNama').classList.toggle('hide', !c.signup); $('rowExtra').classList.toggle('hide', !c.signup);
   $('nama').required = c.signup; $('hp').required = c.signup; $('lokasi').required = c.signup; $('pass').autocomplete = c.pw; $('go').textContent = c.btn;
+  $('f').classList.toggle('su', c.signup); document.querySelectorAll('#f .bad').forEach(x => x.classList.remove('bad'));
   say('');
 }
 $('seg').onclick = e => { if (e.target.dataset.m) setMode(e.target.dataset.m); };
@@ -179,14 +181,27 @@ function run(fn, args, ok) {
     .catch(e => { b.disabled = false; b.textContent = t; say('Terjadi kesalahan: ' + e.message, 'err'); });
 }
 
+['nama', 'user', 'pass', 'hp', 'lokasi'].forEach(id => { $(id).addEventListener('input', () => $(id).classList.remove('bad')); $(id).addEventListener('change', () => $(id).classList.remove('bad')); });
+function cek(daftar) {   // daftar: [[idInput, label, pesanTambahan?]] → true bila semua valid
+  document.querySelectorAll('#f .bad').forEach(x => x.classList.remove('bad'));
+  const kosong = daftar.filter(x => !$(x[0]).value.trim());
+  if (kosong.length) { kosong.forEach(x => $(x[0]).classList.add('bad')); $(kosong[0][0]).focus(); say('Wajib diisi: ' + kosong.map(x => x[1]).join(', ') + '.', 'err'); return false; }
+  return true;
+}
 $('f').onsubmit = e => {
   e.preventDefault(); say('');
   const u = $('user').value.trim(), p = $('pass').value;
   if (mode === 'signup') {
-    run('signup', [{ nama: $('nama').value, username: u, password: p, no_hp: $('hp').value, lokasi_tugas: $('lokasi').value }], r => {
+    if (!cek([['nama', 'Nama lengkap'], ['user', 'Username'], ['pass', 'Password'], ['hp', 'No. HP'], ['lokasi', 'Lokasi tugas']])) return;
+    if (!/^[A-Za-z0-9_.]{3,20}$/.test(u)) { $('user').classList.add('bad'); $('user').focus(); return say('Username 3–20 karakter: huruf, angka, titik, atau garis bawah.', 'err'); }
+    if (p.length < 6) { $('pass').classList.add('bad'); $('pass').focus(); return say('Password minimal 6 karakter.', 'err'); }
+    const dg = $('hp').value.replace(/\D/g, '').replace(/^62/, '').replace(/^0+/, '');
+    if (dg.length < 9 || dg.length > 13 || !/^[0-9+ \-]+$/.test($('hp').value.trim())) { $('hp').classList.add('bad'); $('hp').focus(); return say('No. HP tidak valid. Contoh: 0812 3456 7890.', 'err'); }
+    run('signup', [{ nama: $('nama').value.trim(), username: u, password: p, no_hp: $('hp').value.trim(), lokasi_tugas: $('lokasi').value }], r => {
       if (r.ok) { $('f').reset(); setMode('login'); say(r.message, 'ok'); } else say(r.message, 'err');
     });
   } else {
+    if (!cek([['user', 'Username'], ['pass', 'Password']])) return;
     run('login', [u, p], r => {
       if (!r.ok) return say(r.message, 'err');
       TOK = r.token; try { sessionStorage.setItem('tok', TOK); } catch (_) {}

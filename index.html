@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<style>
+:root{--bg:#0b1220;--panel:#121b2e;--line:#243049;--txt:#e8edf6;--mut:#8b98b3;--acc:#f5b301;--err:#ff6b6b;--ok:#3ddc97}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom))}
+.card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:1.5rem;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.logo{display:flex;align-items:center;gap:.75rem;margin-bottom:1.2rem}
+.badge{width:46px;height:46px;border-radius:12px;background:var(--acc);color:#1a1300;display:grid;place-items:center;font-size:1.5rem;flex:none}
+h1{font-size:1.05rem;margin:0;line-height:1.25}h1 small{display:block;color:var(--mut);font-weight:400;font-size:.78rem;margin-top:2px}
+.seg{display:grid;grid-template-columns:repeat(2,1fr);background:#0d1627;border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:1.1rem}
+.seg button{border:0;background:none;color:var(--mut);padding:.6rem .2rem;border-radius:9px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--acc);color:#1a1300}
+label{display:block;font-size:.78rem;color:var(--mut);margin:.7rem 0 .3rem}
+input,select,textarea{width:100%;min-height:48px;padding:.7rem .85rem;background:#0d1627;border:1px solid var(--line);border-radius:10px;color:var(--txt);font:inherit;font-size:16px;outline:0}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+.pw{position:relative}.pw button{position:absolute;right:4px;top:4px;height:40px;width:44px;border:0;background:none;color:var(--mut);font-size:1.1rem;cursor:pointer}
+.go{width:100%;min-height:50px;margin-top:1.1rem;border:0;border-radius:11px;background:var(--acc);color:#1a1300;font:inherit;font-weight:700;font-size:1rem;cursor:pointer}
+.go:disabled{opacity:.6}
+.msg{margin:.2rem 0 .6rem;padding:.65rem .8rem;border-radius:10px;font-size:.88rem;display:none}
+.msg.err{display:block;background:rgba(255,107,107,.12);color:var(--err)}.msg.ok{display:block;background:rgba(61,220,151,.12);color:var(--ok)}
+.hint{color:var(--mut);font-size:.76rem;text-align:center;margin:1rem 0 0}
+.hide{display:none!important}
+.dsk{display:none}@media(min-width:560px){.dsk{display:inline}}
+.home h2{margin:.2rem 0 .3rem}.home p{color:var(--mut);line-height:1.5}
+.role{display:inline-block;background:rgba(245,179,1,.15);color:var(--acc);padding:.2rem .7rem;border-radius:99px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.out{background:none;border:1px solid var(--line);color:var(--txt);min-height:46px;width:100%;border-radius:11px;font:inherit;font-weight:600;cursor:pointer;margin-top:1rem}
+
+#app{max-width:980px;margin:0 auto;padding:max(.8rem,env(safe-area-inset-top)) .8rem 2rem}
+.top{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}.top b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-bottom:1rem}@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}}
+.st{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:.9rem}.st span{color:var(--mut);font-size:.78rem}.st strong{display:block;font-size:1.7rem;color:var(--acc)}
+.tabs{display:flex;gap:.4rem;overflow-x:auto;margin-bottom:.8rem;scrollbar-width:none}.tabs button{white-space:nowrap;border:1px solid var(--line);border-radius:99px;background:var(--panel);color:var(--txt);padding:.5rem .95rem;font:inherit;cursor:pointer}.tabs button.on{background:var(--acc);color:#1a1300;border-color:var(--acc)}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;margin-bottom:1rem}.box h3{margin:0 0 .5rem;font-size:1rem}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:600px}th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--mut);font-weight:600}
+img.th{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
+.sm{min-height:38px;padding:.3rem .9rem;border-radius:9px;border:1px solid var(--line);background:none;color:var(--txt);font:inherit;cursor:pointer}
+.row{display:flex;gap:.5rem;margin-bottom:.7rem}.row>*{flex:1}.row .sm{flex:none}
+.pill{padding:.15rem .6rem;border-radius:99px;font-size:.75rem;background:rgba(61,220,151,.15);color:var(--ok)}.pill.x{background:rgba(255,107,107,.15);color:var(--err)}
+.li{padding:.55rem 0;border-bottom:1px solid var(--line);font-size:.9rem}.li small{color:var(--mut)}
+.chat{height:55vh;min-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:.45rem}
+.m{max-width:84%;padding:.5rem .75rem;border-radius:14px;background:#1b2740;align-self:flex-start;overflow-wrap:anywhere}
+.m.me{background:var(--acc);color:#1a1300;align-self:flex-end}.m small{display:block;font-size:.7rem;opacity:.7;margin-bottom:2px}
+.cin{display:flex;gap:.5rem;margin-top:.7rem}.cin input{flex:1}.cin .go{width:auto;margin:0;padding:0 1.2rem}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+
+  <div class="logo"><div class="badge">🛡️</div><h1>Sistem Absensi Security<small>Absensi · Patroli · Laporan</small></h1></div>
+
+  <!-- AUTH -->
+  <div id="auth">
+    <div class="seg" id="seg">
+      <button class="on" data-m="login">Login</button>
+      <button data-m="signup">Daftar</button>
+    </div>
+    <div id="msg" class="msg"></div>
+
+    <form id="f" autocomplete="on">
+      <div id="rowNama" class="hide"><label>Nama lengkap</label><input id="nama" autocomplete="name"></div>
+      <label>Username</label><input id="user" autocomplete="username" autocapitalize="none" required>
+      <label>Password</label>
+      <div class="pw"><input id="pass" type="password" autocomplete="current-password" required><button type="button" id="eye" aria-label="Tampilkan password">👁</button></div>
+      <div id="rowExtra" class="hide">
+        <label>No. HP</label><input id="hp" inputmode="tel" autocomplete="tel">
+        <label>Lokasi tugas</label><input id="lokasi" placeholder="cth: Gedung A">
+      </div>
+      <button class="go" id="go" type="submit">Masuk</button>
+    </form>
+    <p class="hint" id="hint">Daftar hanya untuk akun Security. Admin cukup login dengan akun yang sudah dibuat pengelola.</p>
+  </div>
+
+
+</div></div>
+
+<div id="app" class="hide"><div class="top"><span class="badge" style="width:38px;height:38px;font-size:1.2rem">🛡️</span><b id="who"></b><button class="sm" onclick="openPw()" aria-label="Ubah kata sandi">🔑 <span class="dsk">Ubah Sandi</span></button><button class="sm" onclick="doLogout()">Keluar</button></div><div id="note" class="msg"></div><div id="main"></div></div>
+
+<div id="pwBox" class="hide" style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem">
+  <div class="card" style="max-width:380px">
+    <h1 style="margin-bottom:.6rem">🔑 Ubah Kata Sandi</h1>
+    <div id="pwMsg" class="msg"></div>
+    <form id="pwForm" autocomplete="off">
+      <label>Kata sandi lama</label><input id="pwOld" type="password" autocomplete="current-password" required>
+      <label>Kata sandi baru (min. 6 karakter)</label><input id="pwNew" type="password" autocomplete="new-password" minlength="6" required>
+      <label>Ulangi kata sandi baru</label><input id="pwNew2" type="password" autocomplete="new-password" required>
+      <button class="go" id="pwGo" type="submit">Simpan</button>
+      <button class="out" type="button" onclick="closePw()" style="width:100%;min-height:46px;margin-top:.6rem;background:none;border:1px solid var(--line);color:var(--txt);border-radius:11px;font:inherit;font-weight:600;cursor:pointer">Batal</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let mode = 'login';
+const MODES = {
+  login:  { btn: 'Masuk',  signup: false, pw: 'current-password' },
+  signup: { btn: 'Daftar', signup: true,  pw: 'new-password' }
+};
+
+function say(t, type) { const m = $('msg'); m.textContent = t || ''; m.className = 'msg' + (t ? ' ' + type : ''); }
+
+function setMode(m) {
+  mode = m; const c = MODES[m];
+  document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  $('rowNama').classList.toggle('hide', !c.signup); $('rowExtra').classList.toggle('hide', !c.signup);
+  $('nama').required = c.signup; $('pass').autocomplete = c.pw; $('go').textContent = c.btn;
+  say('');
+}
+$('seg').onclick = e => { if (e.target.dataset.m) setMode(e.target.dataset.m); };
+$('eye').onclick = () => { $('pass').type = $('pass').type === 'password' ? 'text' : 'password'; };
+
+function run(fn, args, ok) {
+  const b = $('go'), t = b.textContent; b.disabled = true; b.textContent = 'Memproses...';
+  rpc(fn, ...args)
+    .then(r => { b.disabled = false; b.textContent = t; ok(r); })
+    .catch(e => { b.disabled = false; b.textContent = t; say('Terjadi kesalahan: ' + e.message, 'err'); });
+}
+
+$('f').onsubmit = e => {
+  e.preventDefault(); say('');
+  const u = $('user').value.trim(), p = $('pass').value;
+  if (mode === 'signup') {
+    run('signup', [{ nama: $('nama').value, username: u, password: p, no_hp: $('hp').value, lokasi_tugas: $('lokasi').value }], r => {
+      if (r.ok) { $('f').reset(); setMode('login'); say(r.message, 'ok'); } else say(r.message, 'err');
+    });
+  } else {
+    run('login', [u, p], r => {
+      if (!r.ok) return say(r.message, 'err');
+      TOK = r.token; try { sessionStorage.setItem('tok', TOK); } catch (_) {}
+      showApp(r.user);
+    });
+  }
+};
+
+let TOK = '', USER = null, D = null, tab = 'absensi';
+// ====== GANTI dengan URL Web App Apps Script Anda (berakhiran /exec) ======
+const API = 'https://script.google.com/macros/s/AKfycbxcy8I52LDHaBqIVd7NTx5CAAZ_dpnKex3v-9K2VRrt6IsB-iH4vMiitd5jROBn3PcS/exec';
+// text/plain agar browser tidak mengirim preflight CORS
+const rpc = (fn, ...a) => fetch(API, { method: 'POST', body: JSON.stringify({ fn: fn, args: a }) })
+  .then(r => r.json()).then(j => { if (!j.ok) throw new Error(j.error); return j.data; });
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function note(t, type) { const n = $('note'); n.textContent = t || ''; n.className = 'msg' + (t ? ' ' + type : ''); if (t) scrollTo(0, 0); }
+function fail(e) { if (/Sesi berakhir/.test(e.message)) return doLogout(); note(e.message, 'err'); }
+
+function showApp(u) {
+  USER = u; document.querySelector('.wrap').classList.add('hide'); $('app').classList.remove('hide');
+  $('who').textContent = (u.role === 'admin' ? '🏢 Admin · ' : '🛡️ ') + u.nama;
+  u.role === 'admin' ? loadAdmin() : secShell();
+}
+function doLogout() {
+  try { sessionStorage.removeItem('tok'); } catch (_) {} const t = TOK; TOK = ''; rpc('logout', t).catch(() => {}).then(() => location.reload());
+}
+
+// ---------- ADMIN ----------
+const ph = u => { const m = String(u || '').match(/id=([^&]+)/); return m ? { h: `<a target="_blank" href="https://drive.google.com/file/d/${m[1]}/view"><img class="th" loading="lazy" src="https://drive.google.com/thumbnail?id=${m[1]}&sz=w160"></a>` } : '-'; };
+const TB = {
+  absensi: { t: '📷 Absensi', h: ['Nama', 'Tanggal', 'Shift', 'Masuk', 'Foto', 'Keluar', 'Foto', 'Status'], r: a => [a.nama, a.tanggal, a.shift, a.jam_masuk, ph(a.foto_masuk), a.jam_keluar, ph(a.foto_keluar), a.status] },
+  patroli: { t: '🚶 Patroli', h: ['Nama', 'Tanggal', 'Jam', 'Checkpoint', 'Foto', 'Catatan'], r: p => [p.nama, p.tanggal, p.jam, p.checkpoint, ph(p.foto), p.catatan] },
+  users: { t: '👤 Personil', h: ['Nama', 'Username', 'Peran', 'Lokasi', 'No HP', 'Status'], r: u => [u.nama, u.username, u.role, u.lokasi, u.hp, { h: u.role === 'admin' ? '<span class="pill">aktif</span>' : `<button class="sm" onclick="setUser('${esc(u.id)}','${u.status === 'aktif' ? 'nonaktif' : 'aktif'}')">${u.status === 'aktif' ? '<span class="pill">aktif</span>' : '<span class="pill x">nonaktif</span>'}</button>` }] },
+  checkpoints: { t: '📍 Checkpoint', h: ['Nama', 'Lokasi'], r: c => [c.nama, c.lokasi] }
+};
+async function loadAdmin() {
+  $('main').innerHTML = '<p style="color:var(--mut)">Memuat data dari spreadsheet...</p>';
+  try { D = await rpc('adminData', TOK); } catch (e) { return fail(e); }
+  const s = D.stats;
+  $('main').innerHTML = `<div class="stats">${[['Personil', s.personil], ['Absen Hari Ini', s.absenHariIni], ['Sedang Bertugas', s.bertugas], ['Patroli Hari Ini', s.patroliHariIni]].map(x => `<div class="st"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('')}</div>
+  <div class="tabs">${Object.keys(TB).map(k => `<button id="t_${k}" onclick="tab='${k}';drawTab()">${TB[k].t}</button>`).join('')}<button onclick="adminChat()">💬 Obrolan</button><button onclick="loadAdmin()">↻ Muat ulang</button></div>
+  <div class="box"><div id="cpf" class="row hide"><input id="cpn" placeholder="Nama checkpoint"><input id="cpl" placeholder="Lokasi"><button class="sm" onclick="addCp()">Tambah</button></div>
+  <input id="q" placeholder="Cari..." oninput="drawTab()" style="margin-bottom:.7rem"><div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>`;
+  drawTab();
+}
+function drawTab() {
+  const d = TB[tab], q = ($('q').value || '').toLowerCase(), list = D[tab].filter(x => !q || JSON.stringify(x).toLowerCase().includes(q));
+  document.querySelectorAll('.tabs button[id]').forEach(b => b.classList.toggle('on', b.id === 't_' + tab));
+  $('cpf').classList.toggle('hide', tab !== 'checkpoints');
+  $('th').innerHTML = '<tr>' + d.h.map(x => `<th>${x}</th>`).join('') + '</tr>';
+  $('tb').innerHTML = list.length ? list.map(x => '<tr>' + d.r(x).map(c => `<td>${c && c.h ? c.h : esc(c) || '-'}</td>`).join('') + '</tr>').join('') : `<tr><td colspan="${d.h.length}" style="color:var(--mut)">Belum ada data.</td></tr>`;
+}
+async function setUser(id, st) { try { const r = await rpc('setStatusUser', TOK, id, st); if (!r.ok) note(r.message, 'err'); await loadAdmin(); tab = 'users'; drawTab(); } catch (e) { fail(e); } }
+async function addCp() { try { const r = await rpc('addCheckpoint', TOK, $('cpn').value, $('cpl').value); if (!r.ok) return note(r.message, 'err'); await loadAdmin(); tab = 'checkpoints'; drawTab(); } catch (e) { fail(e); } }
+
+// ---------- SECURITY ----------
+const shot = f => new Promise(ok => { if (!f) return ok(''); const r = new FileReader(); r.onload = () => { const i = new Image(); i.onload = () => { const s = Math.min(1, 720 / Math.max(i.width, i.height)), c = document.createElement('canvas'); c.width = i.width * s; c.height = i.height * s; c.getContext('2d').drawImage(i, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', .65)); }; i.src = r.result; }; r.readAsDataURL(f); });
+const gps = () => new Promise(ok => navigator.geolocation ? navigator.geolocation.getCurrentPosition(p => ok({ lat: p.coords.latitude, lng: p.coords.longitude }), () => ok({}), { timeout: 8000, enableHighAccuracy: true }) : ok({}));
+
+async function loadSec() {
+  let s; try { s = await rpc('statusSaya', TOK); } catch (e) { return fail(e); }
+  const a = s.absen, info = !a ? 'Belum absen masuk hari ini' : a.jam_keluar ? `Selesai · shift ${a.shift} · ${a.jam_masuk}–${a.jam_keluar}` : `Bertugas · shift ${a.shift} · masuk ${a.jam_masuk}`;
+  const aksi = a && a.jam_keluar ? '<p style="color:var(--ok)">Absensi hari ini lengkap ✔</p>' : `${a ? '' : '<select id="shift"><option>Pagi</option><option>Siang</option><option>Malam</option></select><br><br>'}
+    <input type="file" id="fa" accept="image/*" capture="user"><button class="go" onclick="kirimAbsen(this,'${a ? 'absenKeluar' : 'absenMasuk'}')">${a ? 'Absen Keluar' : 'Absen Masuk'} (selfie)</button>`;
+  $('sbody').innerHTML = `<div class="box"><h3>Absensi</h3><p style="margin:.2rem 0 .8rem">${esc(info)}</p>${aksi}</div>
+  <div class="box"><h3>Patroli</h3><select id="cp">${s.checkpoints.length ? s.checkpoints.map(c => `<option>${esc(c.nama)}</option>`).join('') : '<option value="">(admin belum membuat checkpoint)</option>'}</select>
+  <textarea id="cat" rows="2" placeholder="Catatan (opsional)" style="margin:.6rem 0"></textarea><input type="file" id="fp" accept="image/*" capture="environment">
+  <button class="go" onclick="kirimPatroli(this)">Kirim Patroli</button></div>
+  <div class="box"><h3>Patroli hari ini (${s.patroli.length})</h3>${s.patroli.map(p => `<div class="li">${esc(p.jam)} — ${esc(p.checkpoint)}<br><small>${esc(p.catatan)}</small></div>`).join('') || '<small style="color:var(--mut)">Belum ada.</small>'}</div>`;
+}
+async function kirim(btn, fn, data, file) {
+  note(''); if (!file) return note('Ambil foto terlebih dahulu.', 'err');
+  const t = btn.textContent; btn.disabled = true; btn.textContent = 'Mengirim...';
+  try {
+    const [foto, pos] = await Promise.all([shot(file), gps()]);
+    const r = await rpc(fn, TOK, Object.assign(data, pos, { foto }));
+    if (!r.ok) throw new Error(r.message);
+    await loadSec(); note('Berhasil tersimpan ✔', 'ok');
+  } catch (e) { btn.disabled = false; btn.textContent = t; fail(e); }
+}
+const kirimAbsen = (b, fn) => kirim(b, fn, { shift: $('shift') ? $('shift').value : '' }, $('fa').files[0]);
+const kirimPatroli = b => $('cp').value ? kirim(b, 'submitPatroli', { checkpoint: $('cp').value, catatan: $('cat').value }, $('fp').files[0]) : note('Pilih checkpoint.', 'err');
+
+// ---------- SECURITY: NAVIGASI, OBROLAN, PROFIL ----------
+let chatTimer = null, chatLast = -1;
+function secShell() {
+  $('main').innerHTML = '<div class="tabs" id="stabs">' + [['home', '🏠 Beranda'], ['chat', '💬 Obrolan'], ['profil', '👤 Profil']].map(x => `<button data-t="${x[0]}" onclick="goSec('${x[0]}')">${x[1]}</button>`).join('') + '</div><div id="sbody"></div>';
+  goSec('home');
+}
+function goSec(t) {
+  clearInterval(chatTimer); note('');
+  document.querySelectorAll('#stabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  $('sbody').innerHTML = '<p style="color:var(--mut)">Memuat...</p>';
+  ({ home: loadSec, chat: openChat, profil: openProfil })[t]();
+}
+function openChat() {
+  chatLast = -1;
+  $('sbody').innerHTML = `<div class="box"><h3>💬 Obrolan Seluruh Security</h3><div class="chat" id="msgs"></div>
+  <form class="cin" id="cf" autocomplete="off"><input id="ct" maxlength="500" placeholder="Tulis pesan..." required><button class="go" type="submit">Kirim</button></form></div>`;
+  $('cf').onsubmit = async e => {
+    e.preventDefault(); const t = $('ct').value.trim(); if (!t) return; $('ct').value = '';
+    try { const r = await rpc('kirimPesan', TOK, t); if (!r.ok) note(r.message, 'err'); pollChat(); } catch (err) { fail(err); }
+  };
+  pollChat(); chatTimer = setInterval(pollChat, 8000);
+}
+async function pollChat() {
+  const box = $('msgs'); if (!box) return clearInterval(chatTimer); if (document.hidden) return;
+  try {
+    const r = await rpc('ambilPesan', TOK, chatLast);
+    const first = chatLast < 0, near = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    chatLast = r.last;
+    if (!r.rows.length) { if (first) { box.dataset.empty = 1; box.innerHTML = '<small style="color:var(--mut)">Belum ada pesan. Mulai obrolan!</small>'; } return; }
+    if (first || box.dataset.empty) { box.innerHTML = ''; delete box.dataset.empty; }
+    box.insertAdjacentHTML('beforeend', r.rows.map(m => { const me = m.uid === USER.id; return `<div class="m${me ? ' me' : ''}"><small>${me ? 'Anda' : esc(m.nama)} · ${esc(String(m.tanggal).slice(5))} ${esc(m.jam)}</small>${esc(m.pesan)}</div>`; }).join(''));
+    if (first || near) box.scrollTop = box.scrollHeight;
+  } catch (e) { if (/Sesi berakhir/.test(e.message)) fail(e); }
+}
+function adminChat() {
+  $('main').innerHTML = '<div class="tabs"><button onclick="clearInterval(chatTimer);loadAdmin()">← Kembali ke Dashboard</button></div><div id="sbody"></div>';
+  openChat();
+}
+async function openProfil() {
+  let p; try { p = await rpc('getProfile', TOK); } catch (e) { return fail(e); }
+  $('sbody').innerHTML = `<div class="box"><h3>👤 Profil Saya</h3>
+  <div class="stats" style="margin:.6rem 0"><div class="st"><span>Total Absensi</span><strong>${p.totalAbsen}</strong></div><div class="st"><span>Total Patroli</span><strong>${p.totalPatroli}</strong></div></div>
+  <p style="color:var(--mut);font-size:.85rem;margin:.3rem 0 .6rem">Username: <b style="color:var(--txt)">${esc(p.username)}</b> · Bergabung: ${esc(p.bergabung) || '-'}</p>
+  <form id="pf"><label>Nama lengkap</label><input id="pn" value="${esc(p.nama)}" maxlength="60" required>
+  <label>No. HP</label><input id="ph2" value="${esc(p.hp)}" inputmode="tel" maxlength="20">
+  <label>Lokasi tugas</label><input id="pl" value="${esc(p.lokasi)}" maxlength="80"><button class="go" type="submit">Simpan Profil</button></form>
+  <button class="sm" style="width:100%;margin-top:.8rem;min-height:46px" onclick="openPw()">🔑 Ubah Kata Sandi</button></div>`;
+  $('pf').onsubmit = async e => {
+    e.preventDefault(); const b = e.target.querySelector('button'); b.disabled = true;
+    try {
+      const r = await rpc('updateProfile', TOK, { nama: $('pn').value, no_hp: $('ph2').value, lokasi_tugas: $('pl').value });
+      if (r.ok) { USER = r.user; $('who').textContent = '🛡️ ' + USER.nama; note('Profil tersimpan ✔', 'ok'); } else note(r.message, 'err');
+    } catch (err) { fail(err); }
+    b.disabled = false;
+  };
+}
+
+// ---------- UBAH KATA SANDI ----------
+function pwSay(t, type) { const m = $('pwMsg'); m.textContent = t || ''; m.className = 'msg' + (t ? ' ' + type : ''); }
+function openPw() { $('pwForm').reset(); pwSay(''); $('pwBox').classList.remove('hide'); $('pwOld').focus(); }
+function closePw() { $('pwBox').classList.add('hide'); }
+$('pwForm').onsubmit = async e => {
+  e.preventDefault(); pwSay('');
+  if ($('pwNew').value !== $('pwNew2').value) return pwSay('Konfirmasi kata sandi baru tidak sama.', 'err');
+  if ($('pwNew').value === $('pwOld').value) return pwSay('Kata sandi baru harus berbeda dari yang lama.', 'err');
+  const b = $('pwGo'); b.disabled = true; b.textContent = 'Menyimpan...';
+  try {
+    const r = await rpc('changePassword', TOK, $('pwOld').value, $('pwNew').value);
+    pwSay(r.message, r.ok ? 'ok' : 'err'); if (r.ok) $('pwForm').reset();
+  } catch (err) { if (/Sesi berakhir/.test(err.message)) return doLogout(); pwSay(err.message, 'err'); }
+  b.disabled = false; b.textContent = 'Simpan';
+};
+
+(function () {
+  try { TOK = sessionStorage.getItem('tok') || ''; } catch (_) {}
+  if (TOK) rpc('me', TOK).then(u => { if (u) showApp(u); }).catch(() => {});
+})();
+setMode('login');
+</script>
+</body>
+</html>

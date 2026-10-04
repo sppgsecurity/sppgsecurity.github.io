@@ -232,29 +232,25 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 function note(t, type) { const n = $('note'); n.textContent = t || ''; n.className = 'msg' + (t ? ' ' + type : ''); if (t) scrollTo(0, 0); }
 function fail(e) { if (/Sesi berakhir/.test(e.message)) return doLogout(); note(e.message, 'err'); }
 
-// Kirim dengan XHR agar kemajuan unggah (%) bisa dibaca
-const rpcUp = (fn, args, onUp) => new Promise((ok, no) => {
-  const x = new XMLHttpRequest(); x.open('POST', API); x.timeout = 180000;
-  x.upload.onprogress = e => { if (e.lengthComputable) onUp(e.loaded / e.total); };
-  x.upload.onload = () => onUp(1);
-  x.onerror = () => no(new Error('Koneksi gagal. Periksa internet Anda lalu coba lagi.'));
-  x.ontimeout = () => no(new Error('Waktu habis. Sinyal terlalu lemah, coba lagi.'));
-  x.onload = () => { try { const j = JSON.parse(x.responseText); j.ok ? ok(j.data) : no(new Error(j.error)); } catch (_) { no(new Error('Respon server tidak valid.')); } };
-  x.send(JSON.stringify({ fn: fn, args: args }));
-});
+// Kirim memakai fetch (tanpa listener unggah XHR — listener itu memicu preflight CORS yang ditolak Apps Script)
+const rpcUp = (fn, args) => {
+  const c = new AbortController(), t = setTimeout(() => c.abort(), 180000);
+  return fetch(API, { method: 'POST', body: JSON.stringify({ fn: fn, args: args }), signal: c.signal })
+    .then(r => r.json())
+    .then(j => { if (!j.ok) throw new Error(j.error); return j.data; })
+    .catch(e => { throw new Error(e.name === 'AbortError' ? 'Waktu habis. Sinyal terlalu lemah, coba lagi.' : e instanceof TypeError ? 'Koneksi gagal. Periksa internet dan URL API, lalu coba lagi.' : e instanceof SyntaxError ? 'Respon server tidak valid. Pastikan Code.gs sudah di-deploy sebagai versi baru.' : e.message); })
+    .finally(() => clearTimeout(t));
+};
 const UP = {
   p: 0,
   open(title) { $('upIc').textContent = '⏳'; $('upTit').textContent = title; $('upOk').classList.add('hide'); $('upBar').style.background = ''; this.set(0, 'Tunggu proses, jangan tutup halaman…'); $('upBox').classList.remove('hide'); document.body.style.overflow = 'hidden'; },
   set(p, txt) { this.p = p; $('upBar').style.width = p + '%'; $('upPct').textContent = Math.round(p) + '%'; if (txt) $('upTxt').textContent = txt; },
   bump() { if (this.p < 97) this.set(this.p + 1); },
+  // Persen = perkiraan (browser tidak melaporkan kemajuan unggah ke Apps Script); naik pelan sampai server menjawab
   async call(fn, ...args) {
-    let creep = null;
-    try {
-      return await rpcUp(fn, [TOK, ...args], f => {
-        this.set(15 + f * 70, f < 1 ? 'Mengunggah… tunggu proses, jangan tutup halaman' : 'Menyimpan ke server…');
-        if (f >= 1 && !creep) creep = setInterval(() => this.bump(), 500);
-      });
-    } finally { clearInterval(creep); }
+    this.set(15, 'Mengunggah… tunggu proses, jangan tutup halaman');
+    const iv = setInterval(() => { const p = this.p; this.set(p + (95 - p) * 0.07, p > 70 ? 'Menyimpan ke server…' : null); }, 400);
+    try { return await rpcUp(fn, [TOK, ...args]); } finally { clearInterval(iv); }
   },
   async done(msg) { this.set(100, 'Selesai'); $('upIc').textContent = '✅'; $('upTit').textContent = msg; $('upTxt').textContent = 'Data berhasil tersimpan.'; await new Promise(r => setTimeout(r, 1300)); this.close(); },
   fail(msg) { $('upIc').textContent = '❌'; $('upTit').textContent = 'Gagal mengirim'; $('upTxt').textContent = msg; $('upBar').style.background = 'var(--err)'; $('upOk').classList.remove('hide'); },

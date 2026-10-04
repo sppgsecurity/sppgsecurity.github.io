@@ -3,27 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1220">
+<meta name="theme-color" content="#f1f5f9">
 <style>
-:root{--bg:#0b1220;--panel:#121b2e;--line:#243049;--txt:#e8edf6;--mut:#8b98b3;--acc:#f5b301;--err:#ff6b6b;--ok:#3ddc97}
+:root{color-scheme:light;--bg:#f1f5f9;--panel:#ffffff;--line:#dbe3ee;--txt:#0f172a;--mut:#64748b;--acc:#f5b301;--err:#dc2626;--ok:#15803d}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
 .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom))}
-.card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:1.5rem;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:1.5rem;box-shadow:0 12px 40px rgba(15,23,42,.10)}
 .logo{display:flex;align-items:center;gap:.75rem;margin-bottom:1.2rem}
 .badge{width:46px;height:46px;border-radius:12px;background:var(--acc);color:#1a1300;display:grid;place-items:center;font-size:1.5rem;flex:none}
 h1{font-size:1.05rem;margin:0;line-height:1.25}h1 small{display:block;color:var(--mut);font-weight:400;font-size:.78rem;margin-top:2px}
-.seg{display:grid;grid-template-columns:repeat(2,1fr);background:#0d1627;border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:1.1rem}
+.seg{display:grid;grid-template-columns:repeat(2,1fr);background:#f4f7fb;border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:1.1rem}
 .seg button{border:0;background:none;color:var(--mut);padding:.6rem .2rem;border-radius:9px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
 .seg button.on{background:var(--acc);color:#1a1300}
 label{display:block;font-size:.78rem;color:var(--mut);margin:.7rem 0 .3rem}
-input,select,textarea{width:100%;min-height:48px;padding:.7rem .85rem;background:#0d1627;border:1px solid var(--line);border-radius:10px;color:var(--txt);font:inherit;font-size:16px;outline:0}
+input,select,textarea{width:100%;min-height:48px;padding:.7rem .85rem;background:#f4f7fb;border:1px solid var(--line);border-radius:10px;color:var(--txt);font:inherit;font-size:16px;outline:0}
 input:focus,select:focus,textarea:focus{border-color:var(--acc)}
 .pw{position:relative}.pw button{position:absolute;right:4px;top:4px;height:40px;width:44px;border:0;background:none;color:var(--mut);font-size:1.1rem;cursor:pointer}
 .go{width:100%;min-height:50px;margin-top:1.1rem;border:0;border-radius:11px;background:var(--acc);color:#1a1300;font:inherit;font-weight:700;font-size:1rem;cursor:pointer}
 .go:disabled{opacity:.6}
 .msg{margin:.2rem 0 .6rem;padding:.65rem .8rem;border-radius:10px;font-size:.88rem;display:none}
-.msg.err{display:block;background:rgba(255,107,107,.12);color:var(--err)}.msg.ok{display:block;background:rgba(61,220,151,.12);color:var(--ok)}
+.msg.err{display:block;background:rgba(220,38,38,.10);color:var(--err)}.msg.ok{display:block;background:rgba(21,128,61,.10);color:var(--ok)}
 .hint{color:var(--mut);font-size:.76rem;text-align:center;margin:1rem 0 0}
 .hide{display:none!important}
 .dsk{display:none}@media(min-width:560px){.dsk{display:inline}}
@@ -41,12 +41,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--acc)}
 img.th{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
 .sm{min-height:38px;padding:.3rem .9rem;border-radius:9px;border:1px solid var(--line);background:none;color:var(--txt);font:inherit;cursor:pointer}
 .row{display:flex;gap:.5rem;margin-bottom:.7rem}.row>*{flex:1}.row .sm{flex:none}
-.pill{padding:.15rem .6rem;border-radius:99px;font-size:.75rem;background:rgba(61,220,151,.15);color:var(--ok)}.pill.x{background:rgba(255,107,107,.15);color:var(--err)}
+.pill{padding:.15rem .6rem;border-radius:99px;font-size:.75rem;background:rgba(21,128,61,.12);color:var(--ok)}.pill.x{background:rgba(220,38,38,.10);color:var(--err)}
 .li{padding:.55rem 0;border-bottom:1px solid var(--line);font-size:.9rem}.li small{color:var(--mut)}
 .chat{height:55vh;min-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:.45rem}
-.m{max-width:84%;padding:.5rem .75rem;border-radius:14px;background:#1b2740;align-self:flex-start;overflow-wrap:anywhere}
+.m{max-width:84%;padding:.5rem .75rem;border-radius:14px;background:#e8eef6;align-self:flex-start;overflow-wrap:anywhere}
 .m.me{background:var(--acc);color:#1a1300;align-self:flex-end}.m small{display:block;font-size:.7rem;opacity:.7;margin-bottom:2px}
 .cin{display:flex;gap:.5rem;margin-top:.7rem}.cin input{flex:1}.cin .go{width:auto;margin:0;padding:0 1.2rem}
+.burger{font-size:1.3rem;width:44px;padding:0;flex:none}.mob{display:none}
+@media(max-width:759px){.tabs{display:none}.tabs.keep{display:flex}.dkb{display:none}#who{display:none}.mob{display:block;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.top .badge{display:none}}
+@media(min-width:760px){.burger{display:none}}
+#dr{position:fixed;inset:0;z-index:40}.dback{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.dpanel{position:absolute;left:0;top:0;bottom:0;width:80%;max-width:320px;background:var(--panel);padding:max(1rem,env(safe-area-inset-top)) .9rem 1rem;overflow-y:auto;box-shadow:6px 0 30px rgba(15,23,42,.2);display:flex;flex-direction:column;gap:.25rem;animation:slin .18s ease-out}
+@keyframes slin{from{transform:translateX(-100%)}to{transform:none}}
+.dhead{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem}.dhead b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dbtn{display:block;width:100%;text-align:left;min-height:48px;padding:.6rem .9rem;border:0;border-radius:11px;background:none;color:var(--txt);font:inherit;font-size:1rem;cursor:pointer}
+.dbtn:active{background:#eef2f7}.dbtn.on{background:var(--acc);color:#1a1300;font-weight:700}.dsep{height:1px;background:var(--line);margin:.5rem 0}
 </style>
 </head>
 <body>
@@ -79,9 +88,20 @@ img.th{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
 
 </div></div>
 
-<div id="app" class="hide"><div class="top"><span class="badge" style="width:38px;height:38px;font-size:1.2rem">🛡️</span><b id="who"></b><button class="sm" onclick="openPw()" aria-label="Ubah kata sandi">🔑 <span class="dsk">Ubah Sandi</span></button><button class="sm" onclick="doLogout()">Keluar</button></div><div id="note" class="msg"></div><div id="main"></div></div>
+<div id="app" class="hide"><div class="top"><button class="sm burger" onclick="menu(true)" aria-label="Buka menu">☰</button><span class="badge" style="width:38px;height:38px;font-size:1.2rem">🛡️</span><b id="who"></b><b id="cur" class="mob"></b><button class="sm dkb" onclick="openPw()" aria-label="Ubah kata sandi">🔑 <span class="dsk">Ubah Sandi</span></button><button class="sm dkb" onclick="doLogout()">Keluar</button></div><div id="note" class="msg"></div><div id="main"></div></div>
 
-<div id="pwBox" class="hide" style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem">
+<div id="dr" class="hide">
+  <div class="dback" onclick="menu(false)"></div>
+  <nav class="dpanel">
+    <div class="dhead"><b id="dwho"></b><button class="sm" onclick="menu(false)" aria-label="Tutup menu">✕</button></div>
+    <div id="dlist"></div>
+    <div class="dsep"></div>
+    <button class="dbtn" onclick="menu(false);openPw()">🔑 Ubah Sandi</button>
+    <button class="dbtn" onclick="menu(false);doLogout()">🚪 Keluar</button>
+  </nav>
+</div>
+
+<div id="pwBox" class="hide" style="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem">
   <div class="card" style="max-width:380px">
     <h1 style="margin-bottom:.6rem">🔑 Ubah Kata Sandi</h1>
     <div id="pwMsg" class="msg"></div>
@@ -148,9 +168,25 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 function note(t, type) { const n = $('note'); n.textContent = t || ''; n.className = 'msg' + (t ? ' ' + type : ''); if (t) scrollTo(0, 0); }
 function fail(e) { if (/Sesi berakhir/.test(e.message)) return doLogout(); note(e.message, 'err'); }
 
+function menu(on) { $('dr').classList.toggle('hide', !on); document.body.style.overflow = on ? 'hidden' : ''; }
+function fillMenu() {
+  const admin = USER.role === 'admin';
+  const items = admin
+    ? Object.keys(TB).map(k => [k, TB[k].t, `adminGo('${k}')`]).concat([['chat', '💬 Obrolan', 'adminChat()'], ['reload', '↻ Muat ulang', 'loadAdmin()']])
+    : SEC_TABS.map(x => [x[0], x[1], `goSec('${x[0]}')`]);
+  $('dwho').textContent = (admin ? '🏢 ' : '🛡️ ') + USER.nama;
+  $('dlist').innerHTML = items.map(i => `<button class="dbtn" data-k="${i[0]}" onclick="menu(false);${i[2]}">${i[1]}</button>`).join('');
+}
+function mark(k) {
+  document.querySelectorAll('#dlist .dbtn').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+  const b = document.querySelector(`#dlist .dbtn[data-k="${k}"]`); $('cur').textContent = b ? b.textContent : '';
+}
+async function adminGo(k) { clearInterval(chatTimer); if (!$('q')) await loadAdmin(); tab = k; drawTab(); }
+
 function showApp(u) {
   USER = u; document.querySelector('.wrap').classList.add('hide'); $('app').classList.remove('hide');
   $('who').textContent = (u.role === 'admin' ? '🏢 Admin · ' : '🛡️ ') + u.nama;
+  fillMenu();
   u.role === 'admin' ? loadAdmin() : secShell();
 }
 function doLogout() {
@@ -180,6 +216,7 @@ async function loadAdmin() {
   drawTab();
 }
 function drawTab() {
+  mark(tab);
   const d = TB[tab], q = ($('q').value || '').toLowerCase(), list = D[tab].filter(x => !q || JSON.stringify(x).toLowerCase().includes(q));
   document.querySelectorAll('.tabs button[id]').forEach(b => b.classList.toggle('on', b.id === 't_' + tab));
   $('cpf').classList.toggle('hide', tab !== 'checkpoints'); $('jdf').classList.toggle('hide', tab !== 'jadwal');
@@ -202,14 +239,13 @@ const gps = () => new Promise(ok => navigator.geolocation ? navigator.geolocatio
 
 async function loadAbsen() {
   let s; try { s = await rpc('statusSaya', TOK); } catch (e) { return fail(e); }
-  const a = s.absen, masuk = !!a, selesai = !!(a && a.jam_keluar);
-  const info = !a ? 'Belum absen masuk hari ini' : selesai ? `Selesai · shift ${a.shift} · ${a.jam_masuk}–${a.jam_keluar}` : `Bertugas · shift ${a.shift} · masuk ${a.jam_masuk}`;
+  const a = s.absen, bertugas = !!(a && !a.jam_keluar);
+  const info = !a ? 'Belum ada catatan absensi.' : bertugas ? `🟢 Sedang bertugas · shift ${a.shift} · masuk ${a.tanggal} ${a.jam_masuk}` : `Terakhir: ${a.tanggal} · shift ${a.shift} · ${a.jam_masuk}–${a.jam_keluar}`;
   $('sbody').innerHTML = `<div class="box"><h3>📷 Absensi</h3><p style="margin:.2rem 0 .8rem">${esc(info)}</p>
-  ${masuk ? '' : '<label style="margin-top:0">Shift</label><select id="shift"><option>Pagi</option><option>Siang</option><option>Malam</option></select>'}
+  <label style="margin-top:0">Shift (untuk Absen Masuk)</label><select id="shift"><option>Pagi</option><option>Siang</option><option>Malam</option></select>
   <label>Foto selfie</label><input type="file" id="fa" accept="image/*" capture="user">
-  <div class="row" style="margin-top:.9rem"><button class="go" style="margin:0" ${masuk ? 'disabled' : ''} onclick="kirimAbsen(this,'absenMasuk')">Absen Masuk</button>
-  <button class="go" style="margin:0" ${!masuk || selesai ? 'disabled' : ''} onclick="kirimAbsen(this,'absenKeluar')">Absen Keluar</button></div>
-  ${selesai ? '<p style="color:var(--ok);margin:.8rem 0 0">Absensi hari ini lengkap ✔</p>' : ''}</div>`;
+  <div class="row" style="margin-top:.9rem"><button class="go" style="margin:0" onclick="kirimAbsen(this,'absenMasuk')">Absen Masuk</button>
+  <button class="go" style="margin:0" onclick="kirimAbsen(this,'absenKeluar')">Absen Keluar</button></div></div>`;
 }
 async function loadPatroli() {
   let s; try { s = await rpc('statusSaya', TOK); } catch (e) { return fail(e); }
@@ -271,7 +307,7 @@ function secShell() {
   goSec('absen');
 }
 function goSec(t) {
-  secT = t; clearInterval(chatTimer); note('');
+  secT = t; mark(t); clearInterval(chatTimer); note('');
   document.querySelectorAll('#stabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
   $('sbody').innerHTML = '<p style="color:var(--mut)">Memuat...</p>';
   return ({ absen: loadAbsen, jadwal: loadJadwal, patroli: loadPatroli, laporan: loadLaporan, kondisi: loadKondisi, rekap: loadRekap, chat: openChat, profil: openProfil })[t]();
@@ -299,8 +335,8 @@ async function pollChat() {
   } catch (e) { if (/Sesi berakhir/.test(e.message)) fail(e); }
 }
 function adminChat() {
-  $('main').innerHTML = '<div class="tabs"><button onclick="clearInterval(chatTimer);loadAdmin()">← Kembali ke Dashboard</button></div><div id="sbody"></div>';
-  openChat();
+  $('main').innerHTML = '<div class="tabs keep"><button onclick="clearInterval(chatTimer);loadAdmin()">← Kembali ke Dashboard</button></div><div id="sbody"></div>';
+  mark('chat'); openChat();
 }
 async function openProfil() {
   let p; try { p = await rpc('getProfile', TOK); } catch (e) { return fail(e); }
@@ -315,7 +351,7 @@ async function openProfil() {
     e.preventDefault(); const b = e.target.querySelector('button'); b.disabled = true;
     try {
       const r = await rpc('updateProfile', TOK, { nama: $('pn').value, no_hp: $('ph2').value, lokasi_tugas: $('pl').value });
-      if (r.ok) { USER = r.user; $('who').textContent = '🛡️ ' + USER.nama; note('Profil tersimpan ✔', 'ok'); } else note(r.message, 'err');
+      if (r.ok) { USER = r.user; $('who').textContent = '🛡️ ' + USER.nama; fillMenu(); mark(secT); note('Profil tersimpan ✔', 'ok'); } else note(r.message, 'err');
     } catch (err) { fail(err); }
     b.disabled = false;
   };

@@ -64,7 +64,7 @@ img.th{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
 .dbtn{display:block;width:100%;text-align:left;min-height:48px;padding:.6rem .9rem;border:0;border-radius:11px;background:none;color:var(--txt);font:inherit;font-size:1rem;cursor:pointer}
 .dbtn:active{background:#eef2f7}.dbtn.on{background:var(--acc);color:#1a1300;font-weight:700}.dsep{height:1px;background:var(--line);margin:.5rem 0}
 .cimg{display:block;width:220px;max-width:100%;min-height:60px;border-radius:10px;margin:4px 0;background:#e2e8f0}
-.clip{display:inline-flex;align-items:center;justify-content:center;width:46px;padding:0!important;margin:0;cursor:pointer;font-size:1.25rem;flex:none}
+.clip{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;padding:0 .9rem!important;margin:0;cursor:pointer;font-size:.92rem;font-weight:600;white-space:nowrap;flex:none}
 .cprev{display:flex;align-items:center;gap:.6rem;margin-top:.6rem;padding:.4rem;border:1px dashed var(--line);border-radius:10px}.cprev img{width:48px;height:48px;object-fit:cover;border-radius:8px}.cprev span{flex:1;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sm.on{background:var(--acc);color:#1a1300;border-color:var(--acc);font-weight:700}
 @media(min-width:760px){
@@ -454,24 +454,25 @@ function openChat() {
   chatLast = -1; let pend = null;
   $('sbody').innerHTML = `<div class="box"><h3>💬 Obrolan Seluruh Security</h3><div class="chat" id="msgs"></div>
   <div id="cprev" class="cprev hide"><img id="cpi" alt=""><span id="cpn"></span><button type="button" class="sm" id="cpx" aria-label="Batalkan gambar">✕</button></div>
-  <form class="cin" id="cf" autocomplete="off"><label class="sm clip" title="Kirim gambar">📎<input type="file" id="cfile" accept="image/*" hidden></label>
-  <input id="ct" maxlength="500" placeholder="Tulis pesan..."><button class="go" type="submit" id="cs">Kirim</button></form></div>`;
+  <form class="cin" id="cf" autocomplete="off"><label class="sm clip" title="Kirim gambar">📎 Gambar<input type="file" id="cfile" accept="image/*" hidden></label>
+  <input id="ct" maxlength="500" placeholder="Tulis pesan..."><button class="go" type="submit" id="cs">Kirim</button></form><div id="cmsg" class="msg" style="margin:.6rem 0 0"></div></div>`;
+  const cnote = (t, type) => { const m = $('cmsg'); if (!m) return; m.textContent = t || ''; m.className = 'msg' + (t ? ' ' + type : ''); };
   const clear = () => { pend = null; $('cfile').value = ''; $('cprev').classList.add('hide'); };
   $('cfile').onchange = e => {
     const f = e.target.files[0]; if (!f) return;
-    if (!/^image\//.test(f.type)) { clear(); return note('File harus berupa gambar.', 'err'); }
-    note(''); pend = f; $('cpi').src = URL.createObjectURL(f); $('cpn').textContent = f.name; $('cprev').classList.remove('hide');
+    if (!/^image\//.test(f.type)) { clear(); return cnote('File harus berupa gambar.', 'err'); }
+    cnote(''); pend = f; $('cpi').src = URL.createObjectURL(f); $('cpn').textContent = f.name; $('cprev').classList.remove('hide');
   };
   $('cpx').onclick = clear;
   $('cf').onsubmit = async e => {
-    e.preventDefault(); const t = $('ct').value.trim(); if (!t && !pend) return;
+    e.preventDefault(); const t = $('ct').value.trim(); if (!t && !pend) return; cnote('');
     const b = $('cs'); b.disabled = true; b.textContent = pend ? 'Mengunggah...' : 'Kirim';
     try {
       const foto = pend ? await shot(pend) : '';
       const r = await rpc('kirimPesan', TOK, t, foto);
-      if (!r.ok) note(r.message, 'err'); else { $('ct').value = ''; clear(); }
+      if (!r.ok) cnote(r.message, 'err'); else { $('ct').value = ''; clear(); }
       pollChat();
-    } catch (err) { fail(err); }
+    } catch (err) { if (/Sesi berakhir/.test(err.message)) fail(err); else cnote('Gagal mengirim: ' + err.message, 'err'); }
     b.disabled = false; b.textContent = 'Kirim';
   };
   pollChat(); chatTimer = setInterval(pollChat, 8000);

@@ -317,7 +317,7 @@ async function loadAdmin() {
     <div class="row" style="margin:.2rem 0 .6rem"><button class="sm on" id="rv_nama" onclick="rekapView('nama')">Per Nama</button><button class="sm" id="rv_tgl" onclick="rekapView('tgl')">Per Tanggal</button></div>
     <p id="rsum" style="margin:.2rem 0 .6rem;font-size:.92rem"></p>
     <div class="tw"><table><thead id="rth"></thead><tbody id="rtb"></tbody></table></div>
-    <p style="color:var(--mut);font-size:.78rem;margin:.7rem 0 0"><b>Hadir</b> = ada absen masuk. <b>Alpha</b> = ada jadwal shift (sebelum hari ini) tetapi tidak ada absen masuk. Isi tab <b>Jadwal</b> agar alpha bisa dihitung.</p>
+    <p style="color:var(--mut);font-size:.78rem;margin:.7rem 0 0"><b>Shift Hadir</b> = jumlah absen masuk (satu security boleh lebih dari satu shift per hari). <b>Alpha</b> = shift terjadwal (sebelum hari ini) yang tidak ada absen masuknya. Isi tab <b>Jadwal</b> agar alpha bisa dihitung.</p>
   </div>
   <div class="box hide" id="exp"><h3>Export Data</h3>
     <p style="color:var(--mut);margin:.2rem 0 .8rem;font-size:.92rem">Unduh data dari spreadsheet sebagai file Excel atau PDF. Kosongkan tanggal untuk mengekspor semua data.</p>
@@ -362,16 +362,16 @@ function drawRekap() {
   const sel = $('rn').value; let head, rows, sum;
   if (rkView === 'nama') {
     const l = RK.perNama.filter(x => !sel || x.id === sel);
-    head = ['Nama', 'Lokasi', 'Hadir', 'Lengkap', 'Terjadwal', 'Alpha', '% Hadir'];
+    head = ['Nama', 'Lokasi', 'Shift Hadir', 'Lengkap', 'Shift Terjadwal', 'Alpha', '% Hadir'];
     rows = l.map(x => [x.nama, x.lokasi, x.hadir, x.lengkap, x.terjadwal, { h: x.alpha ? `<span class="pill x">${x.alpha}</span>` : '0' }, x.terjadwal ? Math.round((x.terjadwal - x.alpha) / x.terjadwal * 100) + '%' : '-']);
-    sum = `Total hari hadir <b>${l.reduce((a, x) => a + x.hadir, 0)}</b> · total alpha <b>${l.reduce((a, x) => a + x.alpha, 0)}</b> (${l.length} security)`;
+    sum = `Total shift hadir <b>${l.reduce((a, x) => a + x.hadir, 0)}</b> · total alpha <b>${l.reduce((a, x) => a + x.alpha, 0)}</b> (${l.length} security)`;
   } else if (sel) {
     const l = RK.detail[sel] || [];
     head = ['Tanggal', 'Status', 'Shift', 'Masuk', 'Keluar'];
     rows = l.map(x => [x.tanggal, { h: `<span class="pill${x.status === 'Alpha' ? ' x' : ''}">${x.status}</span>` }, x.shift, x.masuk, x.keluar]);
     sum = `Hadir <b>${l.filter(x => x.status === 'Hadir').length}</b> · alpha <b>${l.filter(x => x.status === 'Alpha').length}</b>`;
   } else {
-    head = ['Tanggal', 'Hadir', 'Terjadwal', 'Alpha', 'Nama Alpha'];
+    head = ['Tanggal', 'Shift Hadir', 'Shift Terjadwal', 'Alpha', 'Nama Alpha'];
     rows = RK.perTanggal.map(x => [x.tanggal, x.hadir, x.terjadwal, { h: x.alpha ? `<span class="pill x">${x.alpha}</span>` : '0' }, x.alphaNama]);
     sum = `${RK.perTanggal.length} hari · total alpha <b>${RK.perTanggal.reduce((a, x) => a + x.alpha, 0)}</b>`;
   }
@@ -420,8 +420,9 @@ async function loadAbsen() {
   let s; try { s = await rpc('statusSaya', TOK); } catch (e) { return fail(e); }
   const a = s.absen, bertugas = !!(a && !a.jam_keluar);
   const info = !a ? 'Belum ada catatan absensi.' : bertugas ? `🟢 Sedang bertugas · shift ${a.shift} · masuk ${a.tanggal} ${a.jam_masuk}` : `Terakhir: ${a.tanggal} · shift ${a.shift} · ${a.jam_masuk}–${a.jam_keluar}`;
-  $('sbody').innerHTML = `<div class="box"><h3>📷 Absensi</h3><p style="margin:.2rem 0 .8rem">${esc(info)}</p>
-  <label style="margin-top:0">Shift (untuk Absen Masuk)</label><select id="shift"><option>Pagi</option><option>Malam</option></select>
+  $('sbody').innerHTML = `<div class="box"><h3>📷 Absensi</h3><p style="margin:.2rem 0 .6rem">${esc(info)}</p>
+  ${(s.hariIni || []).length ? '<div style="margin:0 0 .8rem">' + s.hariIni.map(x => `<div class="li">Shift ${esc(x.shift)} · ${esc(x.jam_masuk)} – ${x.jam_keluar ? esc(x.jam_keluar) : '<b style="color:var(--ok)">sedang bertugas</b>'}</div>`).join('') + '</div>' : ''}
+  <label style="margin-top:0">Shift (pilih sesuai tugas Anda sekarang)</label><select id="shift"><option>Pagi</option><option>Malam</option></select>
   <label>Foto selfie</label><input type="file" id="fa" accept="image/*" capture="user">
   <div class="row" style="margin-top:.9rem"><button class="go" style="margin:0" onclick="kirimAbsen(this,'absenMasuk')">Absen Masuk</button>
   <button class="go" style="margin:0" onclick="kirimAbsen(this,'absenKeluar')">Absen Keluar</button></div></div>`;
@@ -458,7 +459,7 @@ function loadRekap() {
 async function tampilRekap() {
   try {
     const r = await rpc('getRekap', TOK, $('rm').value);
-    $('rk').innerHTML = `<p style="margin:.2rem 0 .6rem">Hadir <b style="color:var(--acc)">${r.hadir}</b> hari · absensi lengkap <b style="color:var(--ok)">${r.lengkap}</b> hari</p>` +
+    $('rk').innerHTML = `<p style="margin:.2rem 0 .6rem">Hadir <b style="color:var(--acc)">${r.hari}</b> hari (<b>${r.hadir}</b> shift) · absensi lengkap <b style="color:var(--ok)">${r.lengkap}</b> shift</p>` +
       (r.rows.map(x => `<div class="li"><b>${esc(x.tanggal)}</b> · ${esc(x.shift)}<br><small>Masuk ${esc(x.jam_masuk) || '-'} · Keluar ${esc(x.jam_keluar) || '-'} · ${esc(x.status)}</small></div>`).join('') || '<small style="color:var(--mut)">Tidak ada data pada bulan ini.</small>');
   } catch (e) { fail(e); }
 }

@@ -224,7 +224,7 @@ $('f').onsubmit = e => {
 
 let TOK = '', USER = null, D = null, tab = 'absensi';
 // ====== GANTI dengan URL Web App Apps Script Anda (berakhiran /exec) ======
-const API = 'https://script.google.com/macros/s/AKfycbzZaDcCX1t3VoJU2KPKUG-SYpq6RVlkiX28jD00V_oSwEjCk7zyd42tMcSKAlKmPXLq/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxcy8I52LDHaBqIVd7NTx5CAAZ_dpnKex3v-9K2VRrt6IsB-iH4vMiitd5jROBn3PcS/exec';
 // text/plain agar browser tidak mengirim preflight CORS
 const rpc = (fn, ...a) => fetch(API, { method: 'POST', body: JSON.stringify({ fn: fn, args: a }) })
   .then(r => r.json()).then(j => { if (!j.ok) throw new Error(j.error); return j.data; });
@@ -304,7 +304,7 @@ async function loadAdmin() {
   $('main').innerHTML = `<div class="stats">${[['Personil', s.personil], ['Absen Hari Ini', s.absenHariIni], ['Sedang Bertugas', s.bertugas], ['Patroli Hari Ini', s.patroliHariIni], ['Laporan Baru', s.laporanBaru]].map(x => `<div class="st"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('')}</div>
   <div class="tabs">${Object.keys(TB).map(k => `<button id="t_${k}" onclick="tab='${k}';drawTab()">${TB[k].t}</button>`).join('')}<button class="tg push" onclick="adminChat()">💬 Obrolan</button><button class="tg" onclick="loadAdmin()">↻ Muat ulang</button></div>
   <div class="box" id="tbx"><div id="cpf" class="row hide"><input id="cpn" placeholder="Nama checkpoint"><input id="cpl" placeholder="Lokasi"><button class="sm" onclick="addCp()">Tambah</button></div>
-  <div id="jdf" class="row hide" style="flex-wrap:wrap"><select id="ju" style="min-width:150px">${D.users.filter(u => u.role === 'security').map(u => `<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')}</select><input id="jt" type="date" style="min-width:150px"><select id="js" style="min-width:100px"><option>Pagi</option><option>Siang</option><option>Malam</option></select><input id="jl" placeholder="Lokasi" style="min-width:140px"><input id="jk" placeholder="Keterangan" style="min-width:140px"><button class="sm" onclick="addJd()">Tambah</button></div>
+  <div id="jdf" class="row hide" style="flex-wrap:wrap"><select id="ju" style="min-width:150px">${D.users.filter(u => u.role === 'security').map(u => `<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')}</select><input id="jt" type="date" style="min-width:150px"><select id="js" style="min-width:100px"><option>Pagi</option><option>Malam</option></select><input id="jl" placeholder="Lokasi" style="min-width:140px"><input id="jk" placeholder="Keterangan" style="min-width:140px"><button class="sm" onclick="addJd()">Tambah</button></div>
   <div class="row" style="flex-wrap:wrap"><select id="fl" onchange="drawTab()" style="flex:1 1 260px"><option value="">Semua Lokasi SPPG</option>${[...new Set(LOKASI.concat(D.users.map(u => u.lokasi).filter(Boolean)))].map(x => `<option>${esc(x)}</option>`).join('')}</select>
   <input id="q" placeholder="Cari nama, tanggal, dll..." oninput="drawTab()" style="flex:2 1 200px"></div><div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
   <div class="box hide" id="rkp"><h3>📊 Rekap Kehadiran &amp; Alpha</h3>
@@ -422,7 +422,7 @@ async function loadAbsen() {
   const info = !a ? 'Belum ada catatan absensi.' : bertugas ? `🟢 Sedang bertugas · shift ${a.shift} · masuk ${a.tanggal} ${a.jam_masuk}` : `Terakhir: ${a.tanggal} · shift ${a.shift} · ${a.jam_masuk}–${a.jam_keluar}`;
   $('sbody').innerHTML = `<div class="box"><h3>📷 Absensi</h3><p style="margin:.2rem 0 .6rem">${esc(info)}</p>
   ${(s.hariIni || []).length ? '<div style="margin:0 0 .8rem">' + s.hariIni.map(x => `<div class="li">Shift ${esc(x.shift)} · ${esc(x.jam_masuk)} – ${x.jam_keluar ? esc(x.jam_keluar) : '<b style="color:var(--ok)">sedang bertugas</b>'}</div>`).join('') + '</div>' : ''}
-  <label style="margin-top:0">Shift (pilih sesuai tugas Anda sekarang)</label><select id="shift"><option>Pagi</option><option>Siang</option><option>Malam</option></select>
+  <label style="margin-top:0">Shift (pilih sesuai tugas Anda sekarang)</label><select id="shift"><option>Pagi</option><option>Malam</option></select>
   <label>Foto selfie</label><input type="file" id="fa" accept="image/*" capture="user">
   <div class="row" style="margin-top:.9rem"><button class="go" style="margin:0" onclick="kirimAbsen(this,'absenMasuk')">Absen Masuk</button>
   <button class="go" style="margin:0" onclick="kirimAbsen(this,'absenKeluar')">Absen Keluar</button></div></div>`;
@@ -500,7 +500,7 @@ function openChat() {
   chatLast = -1; let pend = null;
   $('sbody').innerHTML = `<div class="box"><h3>💬 Obrolan Seluruh Security</h3><div class="chat" id="msgs"></div>
   <div id="cprev" class="cprev hide"><img id="cpi" alt=""><span id="cpn"></span><button type="button" class="sm" id="cpx" aria-label="Batalkan gambar">✕</button></div>
-  <form class="cin" id="cf" autocomplete="off"><label class="sm clip" title="Kirim gambar">📎 Gambar<input type="file" id="cfile" accept="image/*" hidden></label>
+  <form class="cin" id="cf" autocomplete="off"><label class="sm clip" title="Kirim gambar">📎<input type="file" id="cfile" accept="image/*" hidden></label>
   <input id="ct" maxlength="500" placeholder="Tulis pesan..."><button class="go" type="submit" id="cs">Kirim</button></form><div id="cmsg" class="msg" style="margin:.6rem 0 0"></div></div>`;
   const cnote = (t, type) => { const m = $('cmsg'); if (!m) return; m.textContent = t || ''; m.className = 'msg' + (t ? ' ' + type : ''); };
   const clear = () => { pend = null; $('cfile').value = ''; $('cprev').classList.add('hide'); };
